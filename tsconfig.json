@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    // Entrada / salida de archivos
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    // Node moderno con ESM
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "esnext",
+
+    // Tipos de Node
+    "types": ["node"],
+
+    // Salida de tipos / mapas (opcional)
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+
+    // Chequeos estrictos
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+
+    // Performance / compatibilidad
+    "skipLibCheck": true
+  }
+}
