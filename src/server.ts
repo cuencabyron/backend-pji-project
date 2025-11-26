@@ -1,10 +1,21 @@
-
 import 'dotenv/config';
-// Importa la instancia de la aplicación Express que definiste en app.ts
+import 'reflect-metadata';
 import app from './app';
+import { AppDataSource } from './data-source';
 
-// Inicia el servidor HTTP de Express en el puerto definido en env.PORT
-app.listen(process.env.PORT, () => {
-  // Cuando el servidor arranca correctamente, muestra este mensaje en la consola
-  console.log(`API escuchando en http://localhost:${process.env.PORT}`);
-});
+const PORT = +(process.env.PORT ?? 4000);
+
+async function start() {
+  try {
+    await AppDataSource.initialize();
+    console.log('DB conectada con TypeORM');
+
+    app.listen(PORT, () => {
+      console.log(`API escuchando en http://localhost:${PORT}`);
+    });
+  } catch (err) {
+    console.error('Error inicializando DataSource:', err);
+    process.exit(1);
+  }
+}
+start();

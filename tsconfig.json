@@ -21,8 +21,21 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
-
     // Performance / compatibilidad
-    "skipLibCheck": true
-  }
+    "skipLibCheck": true,
+
+    // Recomendado para TypeORM (decoradores)
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
+    // Calidad de vida
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+
+    // Suele evitar conflictos con campos de clase + decorators
+    "useDefineForClassFields": false
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
