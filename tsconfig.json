@@ -1,6 +1,10 @@
 {
   "compilerOptions": {
     // Entrada / salida de archivos
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
     "rootDir": "./src",
     "outDir": "./dist",
 

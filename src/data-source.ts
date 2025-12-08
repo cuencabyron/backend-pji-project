@@ -5,6 +5,7 @@ import { Service } from './entities/Service';
 import { Session } from './entities/Session';
 import { Verification } from './entities/Verification';
 import { Payment } from './entities/Payment';
+//import { ServicePriceRange } from './entities/ServicePriceRange';
 
 export const AppDataSource = new DataSource({
   type: 'mysql',
@@ -20,7 +21,7 @@ export const AppDataSource = new DataSource({
     Service,
     Session,
     Verification,
-    Payment,],
+    Payment],
   migrations: [],
   subscribers: [],
 });

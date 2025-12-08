@@ -14,7 +14,8 @@ import sessionsRoutes from './routes/session.routes';
 import verificationsRoutes from './routes/verification.routes';
 // Importa el router de payment, que maneja las rutas /api/payments
 import paymentsRoutes from './routes/payment.routes';
-
+// Importa el router de servicepricerange, que maneja las rutas /api/servicepricerange
+//import servicepricerangeRoutes from './routes/servicepricerange.routes';
 
 // Crea una instancia de aplicación Express
 const app = express();
@@ -51,6 +52,10 @@ app.use('/api/verifications', verificationsRoutes);
 // Monta el router de payments bajo el prefijo /api/payments.
 // Cualquier ruta definida en sessionRoutes se expondrá como /api/payment/...
 app.use('/api/payments', paymentsRoutes);
+
+// Monta el router de payments bajo el prefijo /api/payments.
+// Cualquier ruta definida en sessionRoutes se expondrá como /api/payment/...
+//app.use('/api/servicepricerange', servicepricerangeRoutes);
 
 // Ruta base de “healthcheck” para comprobar que el servidor está levantado.
 // GET /api/health devolverá { ok: true }
