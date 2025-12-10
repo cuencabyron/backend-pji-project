@@ -20,7 +20,8 @@ import { customerRepo } from '../repositories/customer.repo';
  * Tipo que define la forma del cuerpo (body) esperado para crear/actualizar un Customer.
  * Se usa únicamente a nivel de TypeScript para tener tipado fuerte en los controladores.
  */
-type CustomerBody = {
+type CustomerBody = 
+{
   /** Nombre del cliente */
   name: string;
   /** Correo electrónico del cliente */
@@ -52,7 +53,8 @@ type CustomerBody = {
  * @param _req Request de Express (no se utiliza en este handler).
  * @param res  Response de Express, usado para enviar la respuesta al cliente.
  */
-export async function listCustomers(_req: Request, res: Response) {
+export async function listCustomers(_req: Request, res: Response) 
+{
   try {
     // Obtener el repositorio de la entidad Customer
     const repo = customerRepo();
@@ -88,10 +90,8 @@ export async function listCustomers(_req: Request, res: Response) {
  * @param req Request de Express, contiene el parámetro `id` en `req.params`.
  * @param res Response de Express.
  */
-export async function getCustomer(
-  req: Request<{ id: string }>,
-  res: Response
-) {
+export async function getCustomer(req: Request<{ id: string }>, res: Response) 
+{
   try {
     // Extraer el ID desde los parámetros de la ruta
     const { id } = req.params;
@@ -142,10 +142,8 @@ export async function getCustomer(
  * @param req Request de Express, con el body tipado como `CustomerBody`.
  * @param res Response de Express.
  */
-export async function createCustomer(
-  req: Request<{}, {}, CustomerBody>,
-  res: Response
-) {
+export async function createCustomer(req: Request<{}, {}, CustomerBody>, res: Response) 
+{
   try {
     // Extraer campos del body, asignando `active = true` por defecto si no viene
     const { name, email, phone, address, active = true } = req.body ?? {};
@@ -203,10 +201,8 @@ export async function createCustomer(
  * @param req Request de Express con `id` en params y un body parcial de `CustomerBody`.
  * @param res Response de Express.
  */
-export async function updateCustomer(
-  req: Request<{ id: string }, {}, Partial<CustomerBody>>,
-  res: Response
-) {
+export async function updateCustomer(req: Request<{ id: string }, {}, Partial<CustomerBody>>, res: Response) 
+{
   try {
     // ID del customer a actualizar
     const { id } = req.params;
@@ -261,10 +257,8 @@ export async function updateCustomer(
  * @param req Request de Express con el parámetro `id`.
  * @param res Response de Express.
  */
-export async function deleteCustomer(
-  req: Request<{ id: string }>,
-  res: Response
-) {
+export async function deleteCustomer(req: Request<{ id: string }>, res: Response) 
+{
   try {
     // Leer el ID desde la URL
     const { id } = req.params;
