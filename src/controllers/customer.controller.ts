@@ -13,8 +13,12 @@
  *  - Envuelve la lógica en un `try/catch` para manejar errores y devolver un 500 en caso de fallo inesperado.
  */
 
+// Importa los tipos Request y Response de Express, que representan la petición HTTP que llega y la respuesta que se va a enviar.
 import { Request, Response } from 'express';
+// Importa una función de fábrica que devuelve el repositorio de Customer. Se usara para leer/escribir en la tabla "customer" mediante TypeORM.
 import { customerRepo } from '../repositories/customer.repo';
+// Importa un helper para dar un formato estándar a las respuestas de error de la API. Lo usas en los catch para devolver siempre: { message, errorId, details }.
+import { formatError } from '../utils/api-error';
 
 /**
  * Tipo que define la forma del cuerpo (body) esperado para crear/actualizar un Customer.
@@ -65,11 +69,16 @@ export async function listCustomers(_req: Request, res: Response)
     // Devolver el listado completo en formato JSON
     res.json(items);
   } catch (err) {
-    // Loguear el error en el servidor para diagnóstico
-    console.error('Error listando customers:', err);
+    // Define un identificador técnico y estable para este tipo de error, sirve para saber rápidamente en logs y en el frontend qué operación falló.
+    const errorId = 'CUSTOMER_LIST_ERROR';
+
+    // Escribe en la consola del servidor el código de error y el objeto de error real para diagnóstico..
+    console.error(errorId, err);
 
     // Responder al cliente con un error genérico 500
-    res.status(500).json({ message: 'Error listando customers' });
+    res
+      .status(500)
+      .json(formatError('Error listando customers', errorId, err));
   }
 }
 
@@ -104,14 +113,24 @@ export async function getCustomer(req: Request<{ id: string }>, res: Response)
 
     // Si no se encontró ningún registro, responder con 404
     if (!item) {
-      return res.status(404).json({ message: 'Customer no encontrado' });
+      return res
+        .status(404)
+        .json({ message: 'Customer no encontrado', errorId: 'CUSTOMER_NOT_FOUND' });
     }
 
     // Si se encontró, devolver el customer como JSON
     res.json(item);
   } catch (err) {
-    console.error('Error obteniendo customer:', err);
-    res.status(500).json({ message: 'Error obteniendo customer' });
+    // Define un identificador técnico y estable para este tipo de error, sirve para saber rápidamente en logs y en el frontend qué operación falló.
+    const errorId = 'CUSTOMER_GET_ERROR';
+
+    // Escribe en la consola del servidor el código de error y el objeto de error real para diagnóstico.
+    console.error(errorId, err);
+
+    // Responder al cliente con un error genérico 500
+    res
+      .status(500)
+      .json(formatError('Error obteniendo customer', errorId, err));
   }
 }
 
@@ -150,9 +169,10 @@ export async function createCustomer(req: Request<{}, {}, CustomerBody>, res: Re
 
     // Validación básica: los campos obligatorios no pueden ser falsy
     if (!name || !email || !phone || !address) {
-      return res
-        .status(400)
-        .json({ message: 'name, email, phone, address son requeridos' });
+      return res.status(400).json({ 
+        message: 'name, email, phone, address son requeridos',
+        errorId: 'CUSTOMER_VALIDATION_ERROR',
+      });
     }
 
     // Obtener el repositorio de Customer
@@ -167,8 +187,16 @@ export async function createCustomer(req: Request<{}, {}, CustomerBody>, res: Re
     // Devolver el registro creado con HTTP 201 (Created)
     res.status(201).json(saved);
   } catch (err) {
-    console.error('Error creando customer:', err);
-    res.status(500).json({ message: 'Error creando customer' });
+    // Define un identificador técnico y estable para este tipo de error, sirve para saber rápidamente en logs y en el frontend qué operación falló.
+    const errorId = 'CUSTOMER_CREATE_ERROR';
+
+    // Escribe en la consola del servidor el código de error y el objeto de error real para diagnóstico.
+    console.error(errorId, err);
+
+    // Responder al cliente con un error genérico 500
+    res
+      .status(500)
+      .json(formatError('Error creando customer', errorId, err));
   }
 }
 
@@ -215,7 +243,9 @@ export async function updateCustomer(req: Request<{ id: string }, {}, Partial<Cu
 
     // Si no existe, devolver 404
     if (!existing) {
-      return res.status(404).json({ message: 'Customer no encontrado' });
+      return res
+        .status(404)
+        .json({ message: 'Customer no encontrado', errorId: 'CUSTOMER_NOT_FOUND' });
     }
 
     // Extraer campos del body (pueden venir o no)
@@ -234,8 +264,16 @@ export async function updateCustomer(req: Request<{ id: string }, {}, Partial<Cu
     // Devolver el registro actualizado
     res.json(saved);
   } catch (err) {
-    console.error('Error actualizando customer:', err);
-    res.status(500).json({ message: 'Error actualizando customer' });
+    // Define un identificador técnico y estable para este tipo de error, sirve para saber rápidamente en logs y en el frontend qué operación falló.
+    const errorId = 'CUSTOMER_UPDATE_ERROR';
+
+    // Escribe en la consola del servidor el código de error y el objeto de error real para diagnóstico.
+    console.error(errorId, err);
+
+    // Responder al cliente con un error genérico 500
+    res
+      .status(500)
+      .json(formatError('Error actualizando customer', errorId, err));
   }
 }
 
@@ -269,7 +307,9 @@ export async function deleteCustomer(req: Request<{ id: string }>, res: Response
     // Verificar si existe algún customer con ese ID sin cargar toda la entidad
     const exists = await repo.exist({ where: { customer_id: id } });
     if (!exists) {
-      return res.status(404).json({ message: 'Customer no encontrado' });
+      return res
+      .status(404)
+       .json({ message: 'Customer no encontrado', errorId: 'CUSTOMER_NOT_FOUND' });
     }
 
     // Eliminar el registro directamente en la base de datos
@@ -278,7 +318,13 @@ export async function deleteCustomer(req: Request<{ id: string }>, res: Response
     // Responder con 204 (No Content) indicando que la operación fue exitosa
     return res.status(204).send();
   } catch (err) {
-    console.error('Error eliminando customer:', err);
-    return res.status(500).json({ message: 'Error eliminando customer' });
+    // Define un identificador técnico y estable para este tipo de error, sirve para saber rápidamente en logs y en el frontend qué operación falló.
+    const errorId = 'CUSTOMER_DELETE_ERROR';
+
+    // Escribe en la consola del servidor el código de error y el objeto de error real para diagnóstico..
+    console.error(errorId, err);
+
+    // Responder al cliente con un error genérico 500
+    return res.status(500).json(formatError('Error eliminando customer', errorId, err));
   }
 }

@@ -19,12 +19,20 @@
  *  - Usa `try/catch` para capturar errores y responder con 500 en caso de fallo inesperado.
  */
 
+// Importa los tipos Request y Response de Express, que representan la petición HTTP que llega y la respuesta que se va a enviar.
 import { Request, Response } from 'express';
-import { AppDataSource } from '../data-source';
+// Importa una función de fábrica que devuelve el repositorio de Verification. Se usara para leer/escribir en la tabla "verification" mediante TypeORM.
 import { verificationRepo } from '../repositories/verification.repo';
+// Importa la fuente de datos principal de TypeORM. `AppDataSource` es la configuración de conexión a la base de datos (credenciales, host, puerto, entidades, etc.) y desde aquí puedes obtener repositorios.
+import { AppDataSource } from '../data-source';
+// Importa la entidad Customer de TypeORM. Esta clase representa la tabla "customer" en la base de datos y su mapeo a objetos JS/TS.
 import { Customer } from '../entities/Customer';
+// Importa la entidad Session de TypeORM. Esta clase representa la tabla "session" en la base de datos y su mapeo a objetos JS/TS.
 import { Session } from '../entities/Session';
+// Importa la entidad Payment de TypeORM. Esta clase representa la tabla "payment" en la base de datos y su mapeo a objetos JS/TS.
 import { Payment } from '../entities/Payment';
+// Importa un helper para dar un formato estándar a las respuestas de error de la API. Lo usas en los catch para devolver siempre: { message, errorId, details }.
+import { formatError } from '../utils/api-error';
 
 /**
  * Tipo que define la forma del body esperado

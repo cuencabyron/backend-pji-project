@@ -15,10 +15,16 @@
  *  - Está envuelto en `try/catch` para manejar errores y devolver un 500 en caso de fallo inesperado.
  */
 
+// Importa los tipos Request y Response de Express, que representan la petición HTTP que llega y la respuesta que se va a enviar.
 import { Request, Response } from 'express';
+// Importa una función de fábrica que devuelve el repositorio de Service. Se usara para leer/escribir en la tabla "service" mediante TypeORM.
 import { serviceRepo } from '../repositories/service.repo';
+// Importa la fuente de datos principal de TypeORM. `AppDataSource` es la configuración de conexión a la base de datos (credenciales, host, puerto, entidades, etc.) y desde aquí puedes obtener repositorios.
 import { AppDataSource } from '../data-source';
+// Importa la entidad Customer de TypeORM. Esta clase representa la tabla "customer" en la base de datos y su mapeo a objetos JS/TS.
 import { Customer } from '../entities/Customer';
+// Importa un helper para dar un formato estándar a las respuestas de error de la API. Lo usas en los catch para devolver siempre: { message, errorId, details }.
+import { formatError } from '../utils/api-error';
 
 /**
  * Tipo que define la forma del cuerpo (body) esperado
@@ -67,7 +73,11 @@ export async function listServices(_req: Request, res: Response)
     // Devolver el listado completo en formato JSON
     res.json(items);
   } catch (err) {
+
+    // Loguear el error en el servidor para diagnóstico
     console.error('Error listando services:', err);
+    
+    // Responder al cliente con un error genérico 500
     res.status(500).json({ message: 'Error listando services' });
   }
 }
@@ -109,7 +119,9 @@ export async function getService(req: Request<{ id: string }>, res: Response)
     // Devolver el servicio encontrado
     res.json(item);
   } catch (err) {
+    // Loguear el error en el servidor para diagnóstico
     console.error('Error obteniendo service:', err);
+    // Responder al cliente con un error genérico 500
     res.status(500).json({ message: 'Error obteniendo service' });
   }
 }
@@ -171,7 +183,10 @@ export async function createService(req: Request<{}, {}, ServiceBody>, res: Resp
     // Devolver el servicio creado
     res.status(200).json(saved);
   } catch (err: any) {
+    // Loguear el error en el servidor para diagnóstico
     console.error('Error creando service:', err);
+
+    // Responder al cliente con un error genérico 500
     res.status(500).json({ message: 'Error creando service' });
   }
 }
