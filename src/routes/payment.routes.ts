@@ -1,6 +1,8 @@
 // Importa el creador de routers de Express
 import { Router } from 'express';
 
+import { validatePaymentId } from '../middlewares/id-validators';
+
 // Importa los controladores (handlers) para cada operación del CRUD
 import { 
   listPayments,      // GET / -> listar todos los payments
@@ -14,11 +16,21 @@ import {
 const router = Router();
 
 // Define las rutas y asigna el controlador correspondiente
-router.get('/', listPayments);          // Listar todos
-router.get('/:id', getPayment);         // Leer uno por id
-router.post('/', createPayment);        // Crear nuevo
-router.put('/:id', updatePayment);      // Actualizar existente por id
-router.delete('/:id', deletePayment);   // Eliminar por id
+
+// Lista todos los payments
+router.get('/', listPayments);          
+
+// Obtiene un payment por ID (usa middleware para validar :id)
+router.get('/:id', validatePaymentId, getPayment);  
+
+// Crea una nueva session (no necesita validar :id porque no hay parámetro en la URL)
+router.post('/', createPayment);        
+
+// Actualiza un payment por ID (valida :id)
+router.put('/:id', validatePaymentId, updatePayment);     
+
+// Elimina un payment por ID (valida :id)
+router.delete('/:id', validatePaymentId, deletePayment);   
 
 // Exporta el router para montarlo en app.ts (por ejemplo: app.use('/api/payments', router))
 export default router;

@@ -20,8 +20,8 @@ export const AppDataSource = new DataSource({
     Customer,
     Service,
     Session,
-    Verification,
-    Payment],
+    Payment,
+    Verification],
   migrations: [],
   subscribers: [],
 });

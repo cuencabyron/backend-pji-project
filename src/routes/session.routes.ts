@@ -1,6 +1,8 @@
 // Importa el creador de routers de Express
 import { Router } from 'express';
 
+import { validateSessionId } from '../middlewares/id-validators';
+
 // Importa los controladores (handlers) para cada operación del CRUD
 import { 
   listSessions,      // GET / -> listar todos las sessions
@@ -14,11 +16,21 @@ import {
 const router = Router();
 
 // Define las rutas y asigna el controlador correspondiente
-router.get('/', listSessions);          // Listar todos
-router.get('/:id', getSession);         // Leer uno por id
-router.post('/', createSession);        // Crear nuevo
-router.put('/:id', updateSession);      // Actualizar existente por id
-router.delete('/:id', deleteSession);   // Eliminar por id
+
+// Lista todas los sessions
+router.get('/', listSessions);        
+
+// Obtiene una session por ID (usa middleware para validar :id)
+router.get('/:id', validateSessionId, getSession);     
+
+// Crea una nueva session (no necesita validar :id porque no hay parámetro en la URL)
+router.post('/', createSession);       
+
+// Actualiza una session por ID (valida :id)
+router.put('/:id', validateSessionId, updateSession);      
+
+// Elimina un session por ID (valida :id)
+router.delete('/:id', validateSessionId, deleteSession);   
 
 // Exporta el router para montarlo en app.ts (por ejemplo: app.use('/api/session', router))
 export default router;

@@ -10,10 +10,10 @@ import customersRoutes from './routes/customer.routes';
 import servicesRoutes from './routes/service.routes';
 // Importa el router de session, que maneja las rutas /api/sessions
 import sessionsRoutes from './routes/session.routes';
-// Importa el router de verification, que maneja las rutas /api/verifications
-import verificationsRoutes from './routes/verification.routes';
 // Importa el router de payment, que maneja las rutas /api/payments
 import paymentsRoutes from './routes/payment.routes';
+// Importa el router de verification, que maneja las rutas /api/verifications
+import verificationsRoutes from './routes/verification.routes';
 // Importa el router de servicepricerange, que maneja las rutas /api/servicepricerange
 //import servicepricerangeRoutes from './routes/servicepricerange.routes';
 
