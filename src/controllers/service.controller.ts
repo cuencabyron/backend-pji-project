@@ -20,7 +20,7 @@ import { Request, Response } from 'express';
 // Importa una función de fábrica que devuelve el repositorio de Service. Se usara para leer/escribir en la tabla "service" mediante TypeORM.
 import { serviceRepo } from '../repositories/service.repo';
 // Importa la fuente de datos principal de TypeORM. `AppDataSource` es la configuración de conexión a la base de datos (credenciales, host, puerto, entidades, etc.) y desde aquí puedes obtener repositorios.
-import { AppDataSource } from '../data-source';
+import { AppDataSource } from '../config/data-source';
 // Importa la entidad Customer de TypeORM. Esta clase representa la tabla "customer" en la base de datos y su mapeo a objetos JS/TS.
 import { Customer } from '../entities/Customer';
 // Importa un helper para dar un formato estándar a las respuestas de error de la API. Lo usas en los catch para devolver siempre: { message, errorId, details }.

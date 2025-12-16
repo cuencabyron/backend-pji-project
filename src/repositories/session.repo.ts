@@ -1,7 +1,7 @@
 
 // Importa la instancia de conexión/configuración de TypeORM (DataSource)
 // que se creo en src/data-source.ts
-import { AppDataSource } from '../data-source';
+import { AppDataSource } from '../config/data-source';
 
 // Importa la entidad que mapea la tabla "session"
 import { Session } from '../entities/Session';

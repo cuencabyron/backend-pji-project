@@ -113,9 +113,10 @@ export async function getCustomer(req: Request<{ id: string }>, res: Response)
 
     // Si no se encontró ningún registro, responder con 404
     if (!item) {
-      return res
-        .status(404)
-        .json({ message: 'Customer no encontrado', errorId: 'CUSTOMER_NOT_FOUND' });
+      return res.status(404).json({ 
+        message: 'Customer no encontrado', 
+        errorId: 'CUSTOMER_NOT_FOUND',
+      });
     }
 
     // Si se encontró, devolver el customer como JSON
@@ -168,7 +169,8 @@ export async function createCustomer(req: Request<{}, {}, CustomerBody>, res: Re
     const { name, email, phone, address, active = true } = req.body ?? {};
 
     // Validación básica: los campos obligatorios no pueden ser falsy
-    if (!name || !email || !phone || !address) {
+    if (!name || !email || !phone || !address) 
+    {
       return res.status(400).json({ 
         message: 'name, email, phone, address son requeridos',
         errorId: 'CUSTOMER_VALIDATION_ERROR',
@@ -242,10 +244,12 @@ export async function updateCustomer(req: Request<{ id: string }, {}, Partial<Cu
     const existing = await repo.findOneBy({ customer_id: id });
 
     // Si no existe, devolver 404
-    if (!existing) {
-      return res
-        .status(404)
-        .json({ message: 'Customer no encontrado', errorId: 'CUSTOMER_NOT_FOUND' });
+    if (!existing) 
+    {
+      return res.status(404).json({ 
+        message: 'Customer no encontrado', 
+        errorId: 'CUSTOMER_NOT_FOUND', 
+      });
     }
 
     // Extraer campos del body (pueden venir o no)
@@ -306,10 +310,12 @@ export async function deleteCustomer(req: Request<{ id: string }>, res: Response
 
     // Verificar si existe algún customer con ese ID sin cargar toda la entidad
     const exists = await repo.exist({ where: { customer_id: id } });
-    if (!exists) {
-      return res
-      .status(404)
-       .json({ message: 'Customer no encontrado', errorId: 'CUSTOMER_NOT_FOUND' });
+    if (!exists) 
+    {
+      return res.status(404).json({ 
+        message: 'Customer no encontrado', 
+        errorId: 'CUSTOMER_NOT_FOUND', 
+      });
     }
 
     // Eliminar el registro directamente en la base de datos

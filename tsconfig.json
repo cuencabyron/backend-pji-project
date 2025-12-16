@@ -40,6 +40,6 @@
     // Suele evitar conflictos con campos de clase + decorators
     "useDefineForClassFields": false
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "src/config/data-source.ts"],
   "exclude": ["node_modules", "dist"]
 }

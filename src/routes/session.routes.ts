@@ -1,7 +1,9 @@
 // Importa el creador de routers de Express
 import { Router } from 'express';
 
-import { validateSessionId } from '../middlewares/id-validators';
+//import { validateSessionId } from '../middlewares/id-validators';
+
+import { validateSessionId } from '../middlewares/id-validators2';
 
 // Importa los controladores (handlers) para cada operación del CRUD
 import { 

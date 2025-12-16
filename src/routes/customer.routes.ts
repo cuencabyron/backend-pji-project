@@ -1,7 +1,13 @@
 // Importa el creador de routers de Express
 import { Router } from 'express';
 
-import { validateCustomerId } from '../middlewares/id-validators';
+//import { validateCustomerId } from '../middlewares/id-validators';
+
+//import { validateCustomerId } from '../middlewares/id-validators2';
+
+import { uuidIdParamValidator } from '../validators/common.validators';
+
+import { handleValidationErrors } from '../middlewares/validation.middleware';
 
 // Importa los controladores (handlers) para cada operación del CRUD
 import { 
@@ -21,16 +27,31 @@ const router = Router();
 router.get('/', listCustomers);                            
 
 // Obtiene un customer por ID (usa middleware para validar :id)
-router.get('/:id', validateCustomerId, getCustomer);        
+router.get(
+  '/:id',
+  uuidIdParamValidator('customer'),
+  handleValidationErrors,
+  getCustomer
+);      
 
 // Crea un nuevo customer (no necesita validar :id porque no hay parámetro en la URL)
 router.post('/', createCustomer);                                           
 
 // Actualiza un customer por ID (valida :id)
-router.put('/:id', validateCustomerId, updateCustomer);     
+router.put(
+  '/:id',
+  uuidIdParamValidator('customer'),
+  handleValidationErrors,
+  updateCustomer
+);    
 
 // Elimina un customer por ID (valida :id)
-router.delete('/:id', validateCustomerId, deleteCustomer);   
+router.delete(
+  '/:id',
+  uuidIdParamValidator('customer'),
+  handleValidationErrors,
+  deleteCustomer
+);
 
 // Exporta el router para montarlo en app.ts (por ejemplo: app.use('/api/customers', router))
 export default router;

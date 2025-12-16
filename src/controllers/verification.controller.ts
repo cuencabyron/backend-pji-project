@@ -24,7 +24,7 @@ import { Request, Response } from 'express';
 // Importa una función de fábrica que devuelve el repositorio de Verification. Se usara para leer/escribir en la tabla "verification" mediante TypeORM.
 import { verificationRepo } from '../repositories/verification.repo';
 // Importa la fuente de datos principal de TypeORM. `AppDataSource` es la configuración de conexión a la base de datos (credenciales, host, puerto, entidades, etc.) y desde aquí puedes obtener repositorios.
-import { AppDataSource } from '../data-source';
+import { AppDataSource } from '../config/data-source';
 // Importa la entidad Customer de TypeORM. Esta clase representa la tabla "customer" en la base de datos y su mapeo a objetos JS/TS.
 import { Customer } from '../entities/Customer';
 // Importa la entidad Session de TypeORM. Esta clase representa la tabla "session" en la base de datos y su mapeo a objetos JS/TS.
@@ -83,15 +83,19 @@ export async function listVerifications(_req: Request, res: Response)
     const repo = verificationRepo();
 
     // Buscar todas las verificaciones, incluyendo relaciones y ordenando por fecha de creación
-    const items = await repo.find({
+    const items = await repo.find(
+    {
       relations: { customer: true, session: true, payment: true },
       order: { created_at: 'DESC' as const },
     });
 
     res.json(items);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Error listando verifications' });
+    const errorId = 'VERIFICATION_LIST_ERROR';
+    console.error(errorId, err);
+    res
+      .status(500)
+      .json(formatError('Error listando verifications', errorId, err));
   }
 }
 
@@ -125,15 +129,19 @@ export async function getVerification(req: Request<{ id: string }>, res: Respons
     });
 
     if (!item) {
-      return res
-        .status(404)
-        .json({ message: 'Verification no encontrado' });
+      return res.status(404).json({ 
+        message: 'Verification no encontrado',
+        errorId: 'VERIFICATION_NOT_FOUND',
+      });
     }
 
     res.json(item);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Error obteniendo verification' });
+    const errorId = 'VERIFICATION_GET_ERROR';
+    console.error(errorId, err);
+    res
+      .status(500)
+      .json(formatError('Error obteniendo verification', errorId, err));
   }
 }
 
@@ -172,17 +180,12 @@ export async function createVerification(req: Request<{}, {}, VerificationBody>,
       req.body ?? {};
 
     // Validación básica de campos requeridos
-    if (
-      !customer_id ||
-      !session_id ||
-      !payment_id ||
-      !type ||
-      !status ||
-      attempts == null
-    ) {
+    if (!customer_id || !session_id || !payment_id || !type || !status || attempts == null) 
+    {
       return res.status(400).json({
         message:
           'customer_id, session_id, payment_id, type, status y attempts son requeridos',
+        errorId: 'VERIFICATION_VALIDATION_ERROR',
       });
     }
 
@@ -194,14 +197,23 @@ export async function createVerification(req: Request<{}, {}, VerificationBody>,
     ]);
 
     // Validar existencia de las entidades relacionadas
-    if (!customer) {
-      return res.status(400).json({ message: 'customer_id no existe' });
+    if (!customer) 
+    {
+      return res
+        .status(400)
+        .json({ message: 'customer_id no existe', errorId: 'CUSTOMER_NOT_FOUND' });
     }
-    if (!session) {
-      return res.status(400).json({ message: 'session_id no existe' });
+    if (!session) 
+    {
+      return res
+        .status(400)
+        .json({ message: 'session_id no existe', errorId: 'SESSION_NOT_FOUND' });
     }
-    if (!payment) {
-      return res.status(400).json({ message: 'payment_id no existe' });
+    if (!payment) 
+    {
+      return res
+        .status(400)
+        .json({ message: 'payment_id no existe', errorId: 'PAYMENT_NOT_FOUND' });
     }
 
     const repo = verificationRepo();
@@ -221,9 +233,17 @@ export async function createVerification(req: Request<{}, {}, VerificationBody>,
 
     // Devolver la nueva verificación
     res.status(201).json(saved);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Error creando verification' });
+  } catch (err: any) {
+    const errorId = 'VERIFICATION_CREATE_ERROR';
+    console.error(errorId, err);
+
+    // Si viene de MySQL/TypeORM, a veces hay sqlMessage
+    const payload = formatError('Error creando verification', errorId, err);
+    if (err?.sqlMessage) {
+      (payload as any).sqlMessage = err.sqlMessage;
+    }
+
+    res.status(500).json(payload);
   }
 }
 
@@ -269,44 +289,58 @@ export async function updateVerification(req: Request<{ id: string }, {}, Partia
       relations: { customer: true, session: true, payment: true },
     });
 
-    if (!existing) {
-      return res
-        .status(404)
-        .json({ message: 'Verification no encontrado' });
+    if (!existing) 
+    {
+      return res.status(404).json({ 
+        message: 'Verification no encontrado', 
+        errorId: 'VERIFICATION_NOT_FOUND',
+      });
     }
 
     const { customer_id, session_id, payment_id, type, status, attempts } =
       req.body ?? {};
 
     // Si se envía un nuevo customer_id, validar y actualizar la relación
-    if (customer_id !== undefined) {
+    if (customer_id !== undefined) 
+    {
       const c = await AppDataSource.getRepository(Customer).findOneBy({
         customer_id,
       });
       if (!c) {
-        return res.status(400).json({ message: 'customer_id no existe' });
+        return res.status(400).json({ 
+          message: 'customer_id no existe',
+          errorId: 'CUSTOMER_NOT_FOUND',
+        });
       }
       existing.customer = c;
     }
 
     // Si se envía un nuevo session_id, validar y actualizar la relación
-    if (session_id !== undefined) {
+    if (session_id !== undefined) 
+    {
       const s = await AppDataSource.getRepository(Session).findOneBy({
         session_id,
       });
       if (!s) {
-        return res.status(400).json({ message: 'session_id no existe' });
+        return res.status(400).json({ 
+          message: 'session_id no existe',
+          errorId: 'SESSION_NOT_FOUND',
+        });
       }
       existing.session = s;
     }
 
     // Si se envía un nuevo payment_id, validar y actualizar la relación
-    if (payment_id !== undefined) {
+    if (payment_id !== undefined) 
+    {
       const p = await AppDataSource.getRepository(Payment).findOneBy({
         payment_id,
       });
       if (!p) {
-        return res.status(400).json({ message: 'payment_id no existe' });
+        return res.status(400).json({ 
+          message: 'payment_id no existe', 
+          errorId: 'PAYMENT_NOT_FOUND',
+        });
       }
       existing.payment = p;
     }
@@ -322,8 +356,11 @@ export async function updateVerification(req: Request<{ id: string }, {}, Partia
     // Devolver la verificación actualizada
     res.json(saved);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Error actualizando verification' });
+    const errorId = 'VERIFICATION_UPDATE_ERROR';
+    console.error(errorId, err);
+    res
+      .status(500)
+      .json(formatError('Error actualizando verification', errorId, err));
   }
 }
 
@@ -355,10 +392,12 @@ export async function deleteVerification(req: Request<{ id: string }>, res: Resp
       verification_id: req.params.id,
     });
 
-    if (!existing) {
-      return res
-        .status(404)
-        .json({ message: 'Verification no encontrado' });
+    if (!existing) 
+    {
+      return res.status(404).json({
+        message: 'Verification no encontrado',
+        errorId: 'VERIFICATION_NOT_FOUND',
+      });
     }
 
     // Eliminar la verificación encontrada
@@ -367,7 +406,10 @@ export async function deleteVerification(req: Request<{ id: string }>, res: Resp
     // Responder con 204 indicando éxito sin contenido en el body
     res.status(204).send();
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Error eliminando verification' });
+    const errorId = 'VERIFICATION_DELETE_ERROR'
+    console.error(errorId, err);
+    res
+      .status(500)
+      .json(formatError('Error eliminando verification', errorId, err));
   }
 }
