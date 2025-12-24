@@ -46,7 +46,7 @@ export function createIdValidator(options: IdValidatorOptions = {})
   {
     // Obtiene el valor del parámetro desde req.params usando el nombre indicado.
     // Se usa "keyof typeof req.params" para que TypeScript no se queje por el índice dinámico.
-    const value = req.params[paramName as keyof typeof req.params] as string | undefined;
+    const value = req.params[paramName as keyof typeof req.params];
 
     // Validación básica:
     // - debe existir (no null / undefined / string vacío)
@@ -74,16 +74,16 @@ export function createIdValidator(options: IdValidatorOptions = {})
  */
 
 // Middleware para validar el parámetro `id` en rutas de Customer.
-export const validateCustomerId     = createIdValidator({ entityName: 'customer' });
-
-// Middleware para validar el parámetro `id` en rutas de Session.
-export const validateSessionId      = createIdValidator({ entityName: 'session' });
-
-// Middleware para validar el parámetro `id` en rutas de Payment.
-export const validatePaymentId      = createIdValidator({ entityName: 'payment' });
+export const validateCustomerId = createIdValidator({ entityName: 'customer' });
 
 // Middleware para validar el parámetro `id` en rutas de Service.
-export const validateServiceId      = createIdValidator({ entityName: 'service' });
+export const validateServiceId = createIdValidator({ entityName: 'service' });
+
+// Middleware para validar el parámetro `id` en rutas de Session.
+export const validateSessionId = createIdValidator({ entityName: 'session' });
+
+// Middleware para validar el parámetro `id` en rutas de Payment.
+export const validatePaymentId = createIdValidator({ entityName: 'payment' });
 
 // Middleware para validar el parámetro `id` en rutas de Verification.
 export const validateVerificationId = createIdValidator({ entityName: 'verification' });

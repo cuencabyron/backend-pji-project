@@ -1,336 +1,228 @@
 /**
  * Controladores HTTP para la entidad Customer.
  *
- * Expone las operaciones CRUD básicas sobre el recurso `/api/customers`:
- *  - GET    /api/customers        → lista todos los customers
- *  - GET    /api/customers/:id    → obtiene un customer por su ID
- *  - POST   /api/customers        → crea un nuevo customer
- *  - PUT    /api/customers/:id    → actualiza un customer existente
- *  - DELETE /api/customers/:id    → elimina un customer por su ID
+ * Aquí se definen los handlers que atienden las rutas:
+ *   - GET    /api/customers
+ *   - GET    /api/customers/:id
+ *   - POST   /api/customers
+ *   - PUT    /api/customers/:id
  *
- * Cada controlador:
- *  - Usa `customerRepo()` para interactuar con la base de datos mediante TypeORM.
- *  - Envuelve la lógica en un `try/catch` para manejar errores y devolver un 500 en caso de fallo inesperado.
+ * Cada función:
+ *   1) Lee los datos de la petición (params / body).
+ *   2) Usa el repositorio de TypeORM para acceder a la BD.
+ *   3) Mapea la entidad a un DTO de respuesta (CustomerResponseDto).
+ *   4) Devuelve una respuesta JSON adecuada (200, 201, 404, 500, etc.).
  */
 
-// Importa los tipos Request y Response de Express, que representan la petición HTTP que llega y la respuesta que se va a enviar.
 import { Request, Response } from 'express';
-// Importa una función de fábrica que devuelve el repositorio de Customer. Se usara para leer/escribir en la tabla "customer" mediante TypeORM.
+
+// Repositorio de TypeORM encapsulado en una pequeña factory.
 import { customerRepo } from '../repositories/customer.repo';
-// Importa un helper para dar un formato estándar a las respuestas de error de la API. Lo usas en los catch para devolver siempre: { message, errorId, details }.
-import { formatError } from '../utils/api-error';
+
+// DTOs usados para tipar body (entrada) y respuesta (salida).
+import {CreateCustomerDto, UpdateCustomerDto, CustomerResponseDto,} from '../dtos/customer.dto';
+
+// ============================================================================
+// GET /api/customers
+// ============================================================================
 
 /**
- * Tipo que define la forma del cuerpo (body) esperado para crear/actualizar un Customer.
- * Se usa únicamente a nivel de TypeScript para tener tipado fuerte en los controladores.
- */
-type CustomerBody = 
-{
-  /** Nombre del cliente */
-  name: string;
-  /** Correo electrónico del cliente */
-  email: string;
-  /** Teléfono de contacto del cliente */
-  phone: string;
-  /** Dirección física del cliente */
-  address: string;
-  /**
-   * Indicador de si el customer está activo.
-   * Es opcional en el body; si no se envía, se asume `true` al crear.
-   */
-  active?: boolean;
-};
-
-// ====== GET /api/customers ======
-
-/**
- * Controlador para listar todos los customers.
+ * Lista todos los customers.
  *
- * Ruta: GET /api/customers
- *
- * Comportamiento:
- *  - Obtiene el repositorio de Customer.
- *  - Recupera todos los registros mediante `repo.find()`.
- *  - Devuelve el resultado como JSON.
- *  - En caso de error, escribe en consola y responde con 500.
- *
- * @param _req Request de Express (no se utiliza en este handler).
- * @param res  Response de Express, usado para enviar la respuesta al cliente.
+ * - No recibe parámetros (por eso el Request está ignorado como `_req`).
+ * - Obtiene todas las filas de la tabla `customer` usando el repositorio.
+ * - Convierte las entidades de TypeORM a objetos CustomerResponseDto.
+ * - Devuelve el listado como JSON.
  */
 export async function listCustomers(_req: Request, res: Response) 
 {
   try {
-    // Obtener el repositorio de la entidad Customer
+    // Obtiene el repositorio de Customer.
     const repo = customerRepo();
 
-    // Recuperar todos los registros de customers
+    // Recupera todos los registros de la BD.
     const items = await repo.find();
 
-    // Devolver el listado completo en formato JSON
-    res.json(items);
+    // Mapea la entidad de BD → DTO de respuesta.
+    const response: CustomerResponseDto[] = items.map((c) => ({
+      customer_id: c.customer_id,
+      name: c.name,
+      email: c.email,
+      phone: c.phone,
+      address: c.address,
+      active: c.active,
+      created_at: c.created_at,
+      updated_at: c.updated_at,
+    }));
+
+    // Envía el arreglo de customers al cliente.
+    res.json(response);
   } catch (err) {
-    // Define un identificador técnico y estable para este tipo de error, sirve para saber rápidamente en logs y en el frontend qué operación falló.
-    const errorId = 'CUSTOMER_LIST_ERROR';
-
-    // Escribe en la consola del servidor el código de error y el objeto de error real para diagnóstico..
-    console.error(errorId, err);
-
-    // Responder al cliente con un error genérico 500
-    res
-      .status(500)
-      .json(formatError('Error listando customers', errorId, err));
+    // Si algo falla (BD caída, error inesperado, etc.), se escribe en consola
+    // y se responde con 500 (Internal Server Error).
+    console.error('Error listando customers:', err);
+    res.status(500).json({ message: 'Error listando customers' });
   }
 }
 
-// ====== GET /api/customers/:id ======
+// ============================================================================
+// GET /api/customers/:id
+// ============================================================================
 
 /**
- * Controlador para obtener un customer por ID.
+ * Devuelve un customer específico por su ID.
  *
- * Ruta: GET /api/customers/:id
- *
- * Comportamiento:
- *  - Lee el parámetro `id` desde la URL.
- *  - Busca un customer con ese `customer_id` en la base de datos.
- *  - Si lo encuentra, lo devuelve como JSON.
- *  - Si no existe, responde con 404 (not found).
- *  - En caso de error inesperado, responde con 500.
- *
- * @param req Request de Express, contiene el parámetro `id` en `req.params`.
- * @param res Response de Express.
+ * - Lee el parámetro de ruta `id` (UUID).
+ * - Busca en la BD un registro cuyo `customer_id` coincida.
+ * - Si no existe, responde 404.
+ * - Si existe, lo mapea a CustomerResponseDto y lo devuelve como JSON.
  */
 export async function getCustomer(req: Request<{ id: string }>, res: Response) 
 {
   try {
-    // Extraer el ID desde los parámetros de la ruta
+    // Extrae el id de los parámetros de ruta.
     const { id } = req.params;
 
-    // Obtener el repositorio de Customer
     const repo = customerRepo();
 
-    // Buscar un customer cuyo `customer_id` sea igual a `id`
+    // Busca un customer por su ID.
     const item = await repo.findOneBy({ customer_id: id });
 
-    // Si no se encontró ningún registro, responder con 404
+    // Si no se encontró, responde 404.
     if (!item) {
-      return res.status(404).json({ 
-        message: 'Customer no encontrado', 
-        errorId: 'CUSTOMER_NOT_FOUND',
-      });
+      return res.status(404).json({ message: 'Customer no encontrado' });
     }
 
-    // Si se encontró, devolver el customer como JSON
-    res.json(item);
+    // Construye el DTO de respuesta a partir de la entidad.
+    const response: CustomerResponseDto = {
+      customer_id: item.customer_id,
+      name: item.name,
+      email: item.email,
+      phone: item.phone,
+      address: item.address,
+      active: item.active,
+      created_at: item.created_at,
+      updated_at: item.updated_at,
+    };
+
+    // Devuelve el customer encontrado.
+    res.json(response);
   } catch (err) {
-    // Define un identificador técnico y estable para este tipo de error, sirve para saber rápidamente en logs y en el frontend qué operación falló.
-    const errorId = 'CUSTOMER_GET_ERROR';
-
-    // Escribe en la consola del servidor el código de error y el objeto de error real para diagnóstico.
-    console.error(errorId, err);
-
-    // Responder al cliente con un error genérico 500
-    res
-      .status(500)
-      .json(formatError('Error obteniendo customer', errorId, err));
+    console.error('Error obteniendo customer:', err);
+    res.status(500).json({ message: 'Error obteniendo customer' });
   }
 }
 
-// ====== POST /api/customers ======
+// ============================================================================
+// POST /api/customers
+// ============================================================================
 
 /**
- * Controlador para crear un nuevo customer.
+ * Crea un nuevo customer.
  *
- * Ruta: POST /api/customers
- *
- * Body esperado (JSON):
- *  {
- *    "name": string,
- *    "email": string,
- *    "phone": string,
- *    "address": string,
- *    "active": boolean (opcional)
- *  }
- *
- * Comportamiento:
- *  - Lee y desestructura el body.
- *  - Valida que `name`, `email`, `phone`, `address` estén presentes.
- *  - Si falta alguno, responde con 400 (bad request).
- *  - Crea una nueva entidad Customer y la guarda en la base de datos.
- *  - Devuelve el customer creado con código 201 (created).
- *  - En caso de error, responde con 500.
- *
- * @param req Request de Express, con el body tipado como `CustomerBody`.
- * @param res Response de Express.
+ * - Lee el body tipado como CreateCustomerDto.
+ * - Valida que los campos obligatorios vengan informados.
+ * - Crea una nueva entidad de Customer y la guarda en la BD.
+ * - Mapea la entidad guardada a CustomerResponseDto.
+ * - Devuelve el nuevo registro con código 201 (Created).
  */
-export async function createCustomer(req: Request<{}, {}, CustomerBody>, res: Response) 
+export async function createCustomer(req: Request<{}, {}, CreateCustomerDto>, res: Response) 
 {
   try {
-    // Extraer campos del body, asignando `active = true` por defecto si no viene
+    // Extrae los campos del body, con `active` por defecto en true.
     const { name, email, phone, address, active = true } = req.body ?? {};
 
-    // Validación básica: los campos obligatorios no pueden ser falsy
-    if (!name || !email || !phone || !address) 
-    {
-      return res.status(400).json({ 
-        message: 'name, email, phone, address son requeridos',
-        errorId: 'CUSTOMER_VALIDATION_ERROR',
-      });
+    // Validación básica de campos obligatorios.
+    if (!name || !email || !phone || !address) {
+      return res
+        .status(400)
+        .json({ message: 'name, email, phone, address son requeridos' });
     }
 
-    // Obtener el repositorio de Customer
     const repo = customerRepo();
 
-    // Crear una nueva entidad Customer en memoria (aún sin persistir)
+    // Crea una nueva instancia de la entidad Customer (en memoria).
     const entity = repo.create({ name, email, phone, address, active });
 
-    // Guardar la entidad en la base de datos (INSERT)
+    // Persiste la entidad en la BD y devuelve el registro ya guardado.
     const saved = await repo.save(entity);
 
-    // Devolver el registro creado con HTTP 201 (Created)
-    res.status(201).json(saved);
+    // Construye el DTO de respuesta con los datos creados.
+    const response: CustomerResponseDto = {
+      customer_id: saved.customer_id,
+      name: saved.name,
+      email: saved.email,
+      phone: saved.phone,
+      address: saved.address,
+      active: saved.active,
+      created_at: saved.created_at,
+      updated_at: saved.updated_at,
+    };
+
+    // Devuelve el recurso recién creado con código 201.
+    res.status(201).json(response);
   } catch (err) {
-    // Define un identificador técnico y estable para este tipo de error, sirve para saber rápidamente en logs y en el frontend qué operación falló.
-    const errorId = 'CUSTOMER_CREATE_ERROR';
-
-    // Escribe en la consola del servidor el código de error y el objeto de error real para diagnóstico.
-    console.error(errorId, err);
-
-    // Responder al cliente con un error genérico 500
-    res
-      .status(500)
-      .json(formatError('Error creando customer', errorId, err));
+    console.error('Error creando customer:', err);
+    res.status(500).json({ message: 'Error creando customer' });
   }
 }
 
-// ====== PUT /api/customers/:id ======
+// ============================================================================
+// PUT /api/customers/:id
+// ============================================================================
 
 /**
- * Controlador para actualizar un customer existente.
+ * Actualiza parcialmente un customer existente.
  *
- * Ruta: PUT /api/customers/:id
- *
- * Body esperado (JSON):
- *  - Cualquier subset de `CustomerBody`:
- *    {
- *      "name"?: string,
- *      "email"?: string,
- *      "phone"?: string,
- *      "address"?: string,
- *      "active"?: boolean
- *    }
- *
- * Comportamiento:
- *  - Lee el `id` de la URL.
- *  - Busca el customer correspondiente en la base de datos.
- *  - Si no existe, responde con 404.
- *  - Actualiza solo los campos enviados en el body (update parcial).
- *  - Guarda los cambios en la base de datos.
- *  - Devuelve el registro actualizado.
- *  - En caso de error, responde con 500.
- *
- * @param req Request de Express con `id` en params y un body parcial de `CustomerBody`.
- * @param res Response de Express.
+ * - Lee el `id` de los parámetros de ruta y el body como UpdateCustomerDto.
+ * - Busca el registro en la BD; si no existe, responde 404.
+ * - Solo actualiza los campos que vienen definidos en el body (name, email, etc.).
+ * - Guarda los cambios en la BD.
+ * - Mapea el registro actualizado a CustomerResponseDto y lo devuelve.
  */
-export async function updateCustomer(req: Request<{ id: string }, {}, Partial<CustomerBody>>, res: Response) 
+export async function updateCustomer(req: Request<{ id: string }, {}, UpdateCustomerDto>, res: Response) 
 {
   try {
-    // ID del customer a actualizar
     const { id } = req.params;
-
-    // Obtener el repositorio de Customer
     const repo = customerRepo();
 
-    // Buscar la entidad existente en la BD
+    // Busca el customer que se desea actualizar.
     const existing = await repo.findOneBy({ customer_id: id });
 
-    // Si no existe, devolver 404
-    if (!existing) 
-    {
-      return res.status(404).json({ 
-        message: 'Customer no encontrado', 
-        errorId: 'CUSTOMER_NOT_FOUND', 
-      });
+    // Si no existe, responde 404.
+    if (!existing) {
+      return res.status(404).json({ message: 'Customer no encontrado' });
     }
 
-    // Extraer campos del body (pueden venir o no)
+    // Extrae posibles nuevos valores del body.
     const { name, email, phone, address, active } = req.body ?? {};
 
-    // Actualizar únicamente los campos que vengan definidos en la petición
+    // Actualiza solo los campos que vengan definidos (no undefined).
     if (name !== undefined) existing.name = name;
     if (email !== undefined) existing.email = email;
     if (phone !== undefined) existing.phone = phone;
     if (address !== undefined) existing.address = address;
     if (active !== undefined) existing.active = active;
 
-    // Guardar los cambios en la base de datos (UPDATE)
+    // Guarda los cambios en la BD.
     const saved = await repo.save(existing);
 
-    // Devolver el registro actualizado
-    res.json(saved);
+    // Construye el DTO de respuesta con el registro actualizado.
+    const response: CustomerResponseDto = {
+      customer_id: saved.customer_id,
+      name: saved.name,
+      email: saved.email,
+      phone: saved.phone,
+      address: saved.address,
+      active: saved.active,
+      created_at: saved.created_at,
+      updated_at: saved.updated_at,
+    };
+
+    // Devuelve el customer actualizado.
+    res.json(response);
   } catch (err) {
-    // Define un identificador técnico y estable para este tipo de error, sirve para saber rápidamente en logs y en el frontend qué operación falló.
-    const errorId = 'CUSTOMER_UPDATE_ERROR';
-
-    // Escribe en la consola del servidor el código de error y el objeto de error real para diagnóstico.
-    console.error(errorId, err);
-
-    // Responder al cliente con un error genérico 500
-    res
-      .status(500)
-      .json(formatError('Error actualizando customer', errorId, err));
-  }
-}
-
-// ====== DELETE /api/customers/:id ======
-
-/**
- * Controlador para eliminar un customer por ID.
- *
- * Ruta: DELETE /api/customers/:id
- *
- * Comportamiento:
- *  - Lee el `id` de la URL.
- *  - Verifica primero si el customer existe (`repo.exist`).
- *  - Si no existe, responde con 404.
- *  - Si existe, ejecuta un `DELETE` directo en BD (`repo.delete`).
- *  - Responde con 204 (No Content) si la eliminación fue exitosa.
- *  - En caso de error, responde con 500.
- *
- * @param req Request de Express con el parámetro `id`.
- * @param res Response de Express.
- */
-export async function deleteCustomer(req: Request<{ id: string }>, res: Response) 
-{
-  try {
-    // Leer el ID desde la URL
-    const { id } = req.params;
-
-    // Obtener el repositorio de Customer
-    const repo = customerRepo();
-
-    // Verificar si existe algún customer con ese ID sin cargar toda la entidad
-    const exists = await repo.exist({ where: { customer_id: id } });
-    if (!exists) 
-    {
-      return res.status(404).json({ 
-        message: 'Customer no encontrado', 
-        errorId: 'CUSTOMER_NOT_FOUND', 
-      });
-    }
-
-    // Eliminar el registro directamente en la base de datos
-    await repo.delete({ customer_id: id });
-
-    // Responder con 204 (No Content) indicando que la operación fue exitosa
-    return res.status(204).send();
-  } catch (err) {
-    // Define un identificador técnico y estable para este tipo de error, sirve para saber rápidamente en logs y en el frontend qué operación falló.
-    const errorId = 'CUSTOMER_DELETE_ERROR';
-
-    // Escribe en la consola del servidor el código de error y el objeto de error real para diagnóstico..
-    console.error(errorId, err);
-
-    // Responder al cliente con un error genérico 500
-    return res.status(500).json(formatError('Error eliminando customer', errorId, err));
+    console.error('Error actualizando customer:', err);
+    res.status(500).json({ message: 'Error actualizando customer' });
   }
 }

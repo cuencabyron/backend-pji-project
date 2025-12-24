@@ -1,5 +1,3 @@
-// src/utils/api-error.ts
-
 /**
  * Forma estándar de la respuesta de error que devolverá la API.
  */

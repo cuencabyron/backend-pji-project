@@ -12,13 +12,13 @@ export class Customer
   // ============================================
   @PrimaryGeneratedColumn('uuid') customer_id!: string;
 
-  @Column({ type: 'varchar', length: 200 }) name!: string;
+  @Column({ type: 'varchar', length: 100 }) name!: string;
 
-  @Column({ type: 'varchar', length: 255 }) email!: string;
+  @Column({ type: 'varchar', length: 100 }) email!: string;
 
   @Column({ type: 'varchar', length: 25 }) phone!: string;
 
-  @Column({ type: 'varchar', length: 255 }) address!: string;
+  @Column({ type: 'varchar', length: 100 }) address!: string;
 
   @Column({ type: 'boolean', default: true }) active!: boolean;
 
