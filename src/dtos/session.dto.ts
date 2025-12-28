@@ -34,6 +34,4 @@ export interface SessionResponseDto
   status: 'active' | 'ended' | 'revoked';
   started_at: Date;
   ended_at: Date | null;   // si lo manejas nullable
-  created_at: Date;
-  updated_at: Date;
 }

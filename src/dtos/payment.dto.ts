@@ -39,6 +39,4 @@ export interface PaymentResponseDto
   method: string;
   status: 'pending' | 'paid' | 'failed' | 'refunded';
   external_ref: string;
-  created_at: Date;
-  updated_at: Date;
 }

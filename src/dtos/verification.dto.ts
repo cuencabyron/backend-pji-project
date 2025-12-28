@@ -10,8 +10,6 @@ export interface CreateVerificationDto
   type: string;
   status: 'pending' | 'approved' | 'rejected' | 'expired';
   attempts: number;
-  // expires_at?: Date;
-  // verified_at?: Date | null;
 }
 
 /**
@@ -26,8 +24,6 @@ export interface UpdateVerificationDto
   type?: string;
   status?: 'pending' | 'approved' | 'rejected' | 'expired';
   attempts?: number;
-  // expires_at?: Date;
-  // verified_at?: Date | null;
 }
 
 /**
@@ -42,8 +38,4 @@ export interface VerificationResponseDto
   type: string;
   status: 'pending' | 'approved' | 'rejected' | 'expired';
   attempts: number;
-  expires_at: Date;
-  verified_at: Date;   
-  created_at: Date;
-  updated_at: Date;
 }

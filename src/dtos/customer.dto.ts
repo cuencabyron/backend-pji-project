@@ -1,10 +1,23 @@
+import {
+  IsString,
+  IsEmail,
+  IsOptional,
+  IsBoolean,
+  IsNotEmpty,
+  MaxLength,
+} from 'class-validator';
+
 /**
  * DTO para crear un nuevo Customer.
  * Representa la forma del body en POST /api/customers.
  */
-export interface CreateCustomerDto 
+export class CreateCustomerDto 
 {
-  name: string;
+  @IsString()
+  @IsNotEmpty({ message: 'El nombre es obligatorio' })
+  @MaxLength(200, { message: 'El nombre no debe superar 200 caracteres' })
+  name!: string;
+
   email: string;
   phone: string;
   address: string;

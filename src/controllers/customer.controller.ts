@@ -22,7 +22,7 @@ import { AppDataSource } from '@/config/data-source';
 import { Customer } from '@/models/customer.model';
 
 // DTOs usados para tipar body (entrada) y respuesta (salida).
-import {CreateCustomerDto, UpdateCustomerDto, CustomerResponseDto,} from '@/controllers/customer.dto';
+import {CreateCustomerDto, UpdateCustomerDto, CustomerResponseDto,} from '@/dtos/customer.dto';
 
 // ============================================================================
 // GET /api/customers
