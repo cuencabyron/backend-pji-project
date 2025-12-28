@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToMany, ManyToOne } from 'typeorm';
 
-import { Customer } from './Customer';
-import { Verification } from './Verification';
+import { Customer } from './customer.model';
+import { Verification } from './verification.model';
 
 @Entity({ name: 'payment' })
 export class Payment 

@@ -21,10 +21,10 @@ import { Request, Response } from 'express';
 import { AppDataSource } from '@/config/data-source';
 
 // Importa la entidad que mapea la tabla "payment"
-import { Payment } from '@/models/Payment';
+import { Payment } from '@/models/payment.model';
 
 // Importa la entidad Customer de TypeORM. Esta clase representa la tabla "customer" en la base de datos y su mapeo a objetos JS/TS.
-import { Customer } from '@/models/Customer';
+import { Customer } from '@/models/customer.model';
 
 /* Importa un helper para dar un formato estándar a las respuestas de error de la API. Lo usas en los catch para devolver siempre: { message, errorId, details }.
 import { formatError } from '@/utils/api-error';*/

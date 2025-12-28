@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToMany, ManyToOne } from 'typeorm';
-import { Customer } from './Customer'
+import { Customer } from './customer.model'
 //import { ServicePriceRange } from './ServicePriceRange';
 
 @Entity({ name: 'service' })

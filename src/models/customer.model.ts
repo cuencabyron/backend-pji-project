@@ -1,8 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToMany } from 'typeorm';7
-import { Session } from './Session';
-import { Payment } from './Payment';
-import { Verification } from './Verification';
-import { Service } from './Service';
+import { Session } from './session.model';
+import { Payment } from './payment.model';
+import { Verification } from './verification.model';
+import { Service } from './service.model';
 
 @Entity({ name: 'customer' })
 export class Customer

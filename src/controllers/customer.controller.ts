@@ -19,7 +19,7 @@ import { Request, Response } from 'express';
 import { AppDataSource } from '@/config/data-source';
 
 // Importa la entidad que mapea la tabla "customer"
-import { Customer } from '@/models/Customer';
+import { Customer } from '@/models/customer.model';
 
 // DTOs usados para tipar body (entrada) y respuesta (salida).
 import {CreateCustomerDto, UpdateCustomerDto, CustomerResponseDto,} from '@/controllers/customer.dto';
