@@ -13,14 +13,16 @@
  *   3) Mapea la entidad a un DTO de respuesta (CustomerResponseDto).
  *   4) Devuelve una respuesta JSON adecuada (200, 201, 404, 500, etc.).
  */
-
 import { Request, Response } from 'express';
 
-// Repositorio de TypeORM encapsulado en una pequeña factory.
-import { customerRepo } from '../repositories/customer.repo';
+// Importa la instancia de conexión/configuración de TypeORM (DataSource) que se creo en src/data-source.ts
+import { AppDataSource } from '@/config/data-source';
+
+// Importa la entidad que mapea la tabla "customer"
+import { Customer } from '@/models/Customer';
 
 // DTOs usados para tipar body (entrada) y respuesta (salida).
-import {CreateCustomerDto, UpdateCustomerDto, CustomerResponseDto,} from '../dtos/customer.dto';
+import {CreateCustomerDto, UpdateCustomerDto, CustomerResponseDto,} from '@/controllers/customer.dto';
 
 // ============================================================================
 // GET /api/customers
@@ -37,10 +39,10 @@ import {CreateCustomerDto, UpdateCustomerDto, CustomerResponseDto,} from '../dto
 export async function listCustomers(_req: Request, res: Response) 
 {
   try {
-    // Obtiene el repositorio de Customer.
-    const repo = customerRepo();
+    // Obtiene el repositorio de Customer directamente desde el DataSource.
+    const repo = AppDataSource.getRepository(Customer);
 
-    // Recupera todos los registros de la BD.
+    // Recupera todos los registros de clientes de la BD.
     const items = await repo.find();
 
     // Mapea la entidad de BD → DTO de respuesta.
@@ -51,8 +53,6 @@ export async function listCustomers(_req: Request, res: Response)
       phone: c.phone,
       address: c.address,
       active: c.active,
-      created_at: c.created_at,
-      updated_at: c.updated_at,
     }));
 
     // Envía el arreglo de customers al cliente.
@@ -83,7 +83,8 @@ export async function getCustomer(req: Request<{ id: string }>, res: Response)
     // Extrae el id de los parámetros de ruta.
     const { id } = req.params;
 
-    const repo = customerRepo();
+    // Obtiene el repositorio de Customer directamente desde el DataSource.
+    const repo = AppDataSource.getRepository(Customer);
 
     // Busca un customer por su ID.
     const item = await repo.findOneBy({ customer_id: id });
@@ -101,8 +102,6 @@ export async function getCustomer(req: Request<{ id: string }>, res: Response)
       phone: item.phone,
       address: item.address,
       active: item.active,
-      created_at: item.created_at,
-      updated_at: item.updated_at,
     };
 
     // Devuelve el customer encontrado.
@@ -139,7 +138,8 @@ export async function createCustomer(req: Request<{}, {}, CreateCustomerDto>, re
         .json({ message: 'name, email, phone, address son requeridos' });
     }
 
-    const repo = customerRepo();
+    // Obtiene el repositorio de Customer directamente desde el DataSource.
+    const repo = AppDataSource.getRepository(Customer);
 
     // Crea una nueva instancia de la entidad Customer (en memoria).
     const entity = repo.create({ name, email, phone, address, active });
@@ -155,8 +155,6 @@ export async function createCustomer(req: Request<{}, {}, CreateCustomerDto>, re
       phone: saved.phone,
       address: saved.address,
       active: saved.active,
-      created_at: saved.created_at,
-      updated_at: saved.updated_at,
     };
 
     // Devuelve el recurso recién creado con código 201.
@@ -183,8 +181,11 @@ export async function createCustomer(req: Request<{}, {}, CreateCustomerDto>, re
 export async function updateCustomer(req: Request<{ id: string }, {}, UpdateCustomerDto>, res: Response) 
 {
   try {
+    // Extrae el id de los parámetros de ruta.
     const { id } = req.params;
-    const repo = customerRepo();
+
+    // Obtiene el repositorio de Customer directamente desde el DataSource.
+    const repo = AppDataSource.getRepository(Customer);
 
     // Busca el customer que se desea actualizar.
     const existing = await repo.findOneBy({ customer_id: id });
@@ -215,8 +216,6 @@ export async function updateCustomer(req: Request<{ id: string }, {}, UpdateCust
       phone: saved.phone,
       address: saved.address,
       active: saved.active,
-      created_at: saved.created_at,
-      updated_at: saved.updated_at,
     };
 
     // Devuelve el customer actualizado.

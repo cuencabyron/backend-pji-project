@@ -17,14 +17,18 @@
 
 // Importa los tipos Request y Response de Express, que representan la petición HTTP que llega y la respuesta que se va a enviar.
 import { Request, Response } from 'express';
-// Importa una función de fábrica que devuelve el repositorio de Service. Se usara para leer/escribir en la tabla "service" mediante TypeORM.
-import { serviceRepo } from '../repositories/service.repo';
-// Importa la fuente de datos principal de TypeORM. `AppDataSource` es la configuración de conexión a la base de datos (credenciales, host, puerto, entidades, etc.) y desde aquí puedes obtener repositorios.
-import { AppDataSource } from '../config/data-source';
+
+// Importa la instancia de conexión/configuración de TypeORM (DataSource) que se creo en src/data-source.ts
+import { AppDataSource } from '@/config/data-source';
+
+// Importa la entidad que mapea la tabla "service"
+import { Service } from '@/models/Service';
+
 // Importa la entidad Customer de TypeORM. Esta clase representa la tabla "customer" en la base de datos y su mapeo a objetos JS/TS.
-import { Customer } from '../entities/Customer';
-// Importa un helper para dar un formato estándar a las respuestas de error de la API. Lo usas en los catch para devolver siempre: { message, errorId, details }.
-import { formatError } from '../utils/api-error';
+import { Customer } from '@/models/Customer';
+
+/* Importa un helper para dar un formato estándar a las respuestas de error de la API. Lo usas en los catch para devolver siempre: { message, errorId, details }.
+import { formatError } from '@/utils/api-error'; */
 
 /**
  * Tipo que define la forma del cuerpo (body) esperado
@@ -64,10 +68,10 @@ type ServiceBody =
 export async function listServices(_req: Request, res: Response) 
 {
   try {
-    // Obtener el repositorio de Service
-    const repo = serviceRepo();
+    // Obtiene el repositorio de Service directamente desde el DataSource.
+    const repo = AppDataSource.getRepository(Service);
 
-    // Recuperar todos los registros de servicios
+    // Recupera todos los registros de servicios de la BD.
     const items = await repo.find();
 
     // Devolver el listado completo en formato JSON
@@ -105,8 +109,8 @@ export async function getService(req: Request<{ id: string }>, res: Response)
     // Extraer el ID del servicio desde los parámetros de la ruta
     const { id } = req.params;
 
-    // Obtener el repositorio de Service
-    const repo = serviceRepo();
+    // Obtiene el repositorio de Service directamente desde el DataSource.
+    const repo = AppDataSource.getRepository(Service);
 
     // Buscar un servicio con ese ID en la base de datos
     const item = await repo.findOneBy({ service_id: id });
@@ -171,8 +175,8 @@ export async function createService(req: Request<{}, {}, ServiceBody>, res: Resp
       return res.status(400).json({ message: 'customer_id no existe' });
     }
 
-    // Obtener el repositorio de Service
-    const repo = serviceRepo();
+    // Obtiene el repositorio de Service directamente desde el DataSource.
+    const repo = AppDataSource.getRepository(Service);
 
     // Crear una nueva entidad Service en memoria con los datos recibidos
     const entity = repo.create({ customer_id, name, description, active });
@@ -224,8 +228,8 @@ export async function updateService(req: Request<{ id: string }, {}, Partial<Ser
     // ID del servicio a actualizar
     const { id } = req.params;
 
-    // Repositorio de Service
-    const repo = serviceRepo();
+    // Obtiene el repositorio de Service directamente desde el DataSource.
+    const repo = AppDataSource.getRepository(Service);
 
     // Buscar el servicio existente en la BD
     const existing = await repo.findOneBy({ service_id: id });
@@ -288,8 +292,8 @@ export async function deleteService(req: Request<{ id: string }>, res: Response)
     // ID del servicio a eliminar
     const { id } = req.params;
 
-    // Repositorio de Service
-    const repo = serviceRepo();
+    // Obtiene el repositorio de Service directamente desde el DataSource.
+    const repo = AppDataSource.getRepository(Service);
 
     // Buscar el servicio por ID en la base de datos
     const existing = await repo.findOneBy({ service_id: id });

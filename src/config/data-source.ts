@@ -1,10 +1,10 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
-import { Customer } from '../entities/Customer';
-import { Service } from '../entities/Service';
-import { Session } from '../entities/Session';
-import { Verification } from '../entities/Verification';
-import { Payment } from '../entities/Payment';
+import { Customer } from '@/models/Customer';
+import { Service } from '@/models/Service';
+import { Session } from '@/models/Session';
+import { Verification } from '@/models/Verification';
+import { Payment } from '@/models/Payment';
 //import { ServicePriceRange } from './entities/ServicePriceRange';
 
 export const AppDataSource = new DataSource(

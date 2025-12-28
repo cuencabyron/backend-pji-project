@@ -5,9 +5,9 @@ import { Router } from 'express';
 
 //import { validateCustomerId } from '../middlewares/id-validators2';
 
-import { uuidIdParamValidator } from '../middlewares/common.validators';
+import { uuidIdParamValidator } from '@/middlewares/common.validators';
 
-import { handleValidationErrors } from '../middlewares/validation.middleware';
+import { handleValidationErrors } from '@/middlewares/validation.middleware';
 
 // Importa los controladores (handlers) para cada operación del CRUD
 import { 

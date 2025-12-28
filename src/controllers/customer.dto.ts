@@ -36,6 +36,4 @@ export interface CustomerResponseDto
   phone: string;
   address: string;
   active: boolean;
-  created_at: Date;
-  updated_at: Date;
 }

@@ -5,15 +5,15 @@ import cors from 'cors';
 // Importa Helmet, un conjunto de middlewares de seguridad (cabeceras HTTP)
 import helmet from 'helmet';
 // Importa el router de customer, que maneja las rutas /api/customers
-import customersRoutes from './routes/customer.routes';
+import customersRoutes from '@/routes/customer.routes';
 // Importa el router de service, que maneja las rutas /api/services
-import servicesRoutes from './routes/service.routes';
+import servicesRoutes from '@/routes/service.routes';
 // Importa el router de session, que maneja las rutas /api/sessions
-import sessionsRoutes from './routes/session.routes';
+import sessionsRoutes from '@/routes/session.routes';
 // Importa el router de payment, que maneja las rutas /api/payments
-import paymentsRoutes from './routes/payment.routes';
+import paymentsRoutes from '@/routes/payment.routes';
 // Importa el router de verification, que maneja las rutas /api/verifications
-import verificationsRoutes from './routes/verification.routes';
+import verificationsRoutes from '@/routes/verification.routes';
 // Importa el router de servicepricerange, que maneja las rutas /api/servicepricerange
 //import servicepricerangeRoutes from './routes/servicepricerange.routes';
 

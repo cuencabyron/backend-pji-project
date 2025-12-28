@@ -21,18 +21,24 @@
 
 // Importa los tipos Request y Response de Express, que representan la petición HTTP que llega y la respuesta que se va a enviar.
 import { Request, Response } from 'express';
-// Importa una función de fábrica que devuelve el repositorio de Verification. Se usara para leer/escribir en la tabla "verification" mediante TypeORM.
-import { verificationRepo } from '../repositories/verification.repo';
+
 // Importa la fuente de datos principal de TypeORM. `AppDataSource` es la configuración de conexión a la base de datos (credenciales, host, puerto, entidades, etc.) y desde aquí puedes obtener repositorios.
-import { AppDataSource } from '../config/data-source';
+import { AppDataSource } from '@/config/data-source';
+
+// Importa la entidad que mapea la tabla "verification"
+import { Verification } from '@/models/Verification';
+
 // Importa la entidad Customer de TypeORM. Esta clase representa la tabla "customer" en la base de datos y su mapeo a objetos JS/TS.
-import { Customer } from '../entities/Customer';
+import { Customer } from '@/models/Customer';
+
 // Importa la entidad Session de TypeORM. Esta clase representa la tabla "session" en la base de datos y su mapeo a objetos JS/TS.
-import { Session } from '../entities/Session';
+import { Session } from '@/models/Session';
+
 // Importa la entidad Payment de TypeORM. Esta clase representa la tabla "payment" en la base de datos y su mapeo a objetos JS/TS.
-import { Payment } from '../entities/Payment';
+import { Payment } from '@/models/Payment';
+
 // Importa un helper para dar un formato estándar a las respuestas de error de la API. Lo usas en los catch para devolver siempre: { message, errorId, details }.
-import { formatError } from '../utils/api-error';
+import { formatError } from '../utils/api-error'; 
 
 /**
  * Tipo que define la forma del body esperado
@@ -80,9 +86,10 @@ type VerificationBody =
 export async function listVerifications(_req: Request, res: Response) 
 {
   try {
-    const repo = verificationRepo();
+    // Obtiene el repositorio de Verification directamente desde el DataSource.
+    const repo = AppDataSource.getRepository(Verification);
 
-    // Buscar todas las verificaciones, incluyendo relaciones y ordenando por fecha de creación
+    // Recupera todos los registros de verificaciones de la BD.
     const items = await repo.find(
     {
       relations: { customer: true, session: true, payment: true },
@@ -120,7 +127,8 @@ export async function listVerifications(_req: Request, res: Response)
 export async function getVerification(req: Request<{ id: string }>, res: Response) 
 {
   try {
-    const repo = verificationRepo();
+    // Obtiene el repositorio de Verification directamente desde el DataSource.
+    const repo = AppDataSource.getRepository(Verification);
 
     // Buscar una verificación por ID incluyendo sus relaciones
     const item = await repo.findOne({
@@ -216,7 +224,8 @@ export async function createVerification(req: Request<{}, {}, VerificationBody>,
         .json({ message: 'payment_id no existe', errorId: 'PAYMENT_NOT_FOUND' });
     }
 
-    const repo = verificationRepo();
+    // Obtiene el repositorio de Verification directamente desde el DataSource.
+    const repo = AppDataSource.getRepository(Verification);
 
     // Crear una nueva Verification asociando las entidades completas
     const entity = repo.create({
@@ -280,8 +289,11 @@ export async function createVerification(req: Request<{}, {}, VerificationBody>,
 export async function updateVerification(req: Request<{ id: string }, {}, Partial<VerificationBody>>, res: Response) 
 {
   try {
+    // Extrae el id de los parámetros de ruta.
     const { id } = req.params;
-    const repo = verificationRepo();
+
+    // Obtiene el repositorio de Verification directamente desde el DataSource.
+    const repo = AppDataSource.getRepository(Verification);
 
     // Buscar la verificación por ID, incluyendo relaciones
     const existing = await repo.findOne({
@@ -385,7 +397,8 @@ export async function updateVerification(req: Request<{ id: string }, {}, Partia
 export async function deleteVerification(req: Request<{ id: string }>, res: Response) 
 {
   try {
-    const repo = verificationRepo();
+    // Obtiene el repositorio de Verification directamente desde el DataSource.
+    const repo = AppDataSource.getRepository(Verification);
 
     // Buscar la verificación por ID
     const existing = await repo.findOneBy({
