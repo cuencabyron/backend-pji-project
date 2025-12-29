@@ -5,9 +5,9 @@ import { AppDataSource } from '@/config/data-source';
 
 const PORT = +(process.env.PORT ?? 4000);
 
-async function start() {
+function start() {
   try {
-    await AppDataSource.initialize();
+    AppDataSource.initialize();
     console.log('DB conectada con TypeORM');
     app.listen(PORT, () => {
       console.log(`API escuchando en http://localhost:${PORT}`);

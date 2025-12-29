@@ -2,10 +2,11 @@
  * Controladores HTTP para la entidad Customer.
  *
  * Aquí se definen los handlers que atienden las rutas:
- *   - GET    /api/customers
- *   - GET    /api/customers/:id
- *   - POST   /api/customers
- *   - PUT    /api/customers/:id
+ *   - GET    /api/customers        → lista todos los clientes
+ *   - GET    /api/customers/:id    → obtiene un cliente por su ID
+ *   - POST   /api/customers        → crea un nuevo cliente
+ *   - PUT    /api/customers/:id    → actualiza un cliente existente
+ *   - DELETE /api/customers/:id    → elimina un cliente por su ID
  *
  * Cada función:
  *   1) Lee los datos de la petición (params / body).
@@ -223,5 +224,47 @@ export async function updateCustomer(req: Request<{ id: string }, {}, UpdateCust
   } catch (err) {
     console.error('Error actualizando customer:', err);
     res.status(500).json({ message: 'Error actualizando customer' });
+  }
+}
+
+// ============================================================================
+// DELETE /api/customers/:id
+// ============================================================================
+
+/**
+ * Elimina un customer existente por su ID.
+ *
+ * - Lee el parámetro de ruta `id` (UUID).
+ * - Busca en la base de datos el registro cuyo `customer_id` coincida.
+ * - Si no existe, responde 404 (Not Found).
+ * - Si existe, lo elimina de la tabla `customer`.
+ * - Devuelve 204 (No Content) si la eliminación fue exitosa.
+ */
+export async function deleteCustomer(req: Request<{ id: string }>, res: Response) 
+{
+  try {
+    // Extrae el `id` de los parámetros de la URL.
+    const { id } = req.params;
+
+    // Obtiene el repositorio de Customer directamente desde el DataSource.
+    const repo = AppDataSource.getRepository(Customer);
+
+    // Verifica si el customer con ese ID existe en la BD.
+    const existing = await repo.findOneBy({ customer_id: id });
+
+    // Si no se encontró, responde con 404.
+    if (!existing) {
+      return res.status(404).json({ message: 'Customer no encontrado' });
+    }
+
+    // Si existe, se elimina el registro de la base de datos.
+    await repo.remove(existing);
+
+    // 204 No Content → operación correcta pero sin cuerpo de respuesta.
+    return res.status(204).send();
+  } catch (err) {
+    // Cualquier error inesperado se registra y se responde con 500.
+    console.error('Error eliminando customer:', err);
+    return res.status(500).json({ message: 'Error eliminando customer' });
   }
 }

@@ -1,9 +1,9 @@
 // Importa el creador de routers de Express
 import { Router } from 'express';
 
-//import { validateCustomerId } from '../middlewares/id-validators';
+//import { validateCustomerId } from '@/middlewares/id-validators';
 
-//import { validateCustomerId } from '../middlewares/id-validators2';
+//import { validateCustomerId } from '@/middlewares/id-validators2';
 
 import { uuidIdParamValidator } from '@/middlewares/common.validators';
 
@@ -15,8 +15,8 @@ import {
   getCustomer,        // GET /:id -> obtener un customer por id
   createCustomer,     // POST / -> crear un customer
   updateCustomer,     // PUT /:id -> actualizar un customer por id
-  //deleteCustomer      // DELETE /:id -> eliminar un customer por id
-} from '../controllers/customer.controller';
+  deleteCustomer      // DELETE /:id -> eliminar un customer por id
+} from '@/controllers/customer.controller';
 
 // Crea una instancia de router independiente
 const router = Router();
@@ -45,13 +45,13 @@ router.put(
   updateCustomer
 );    
 
-/* Elimina un customer por ID (valida :id)
+// Elimina un customer por ID (valida :id)
 router.delete(
   '/:id',
   uuidIdParamValidator('customer'),
   handleValidationErrors,
   deleteCustomer
-);*/
+);
 
 // Exporta el router para montarlo en app.ts (por ejemplo: app.use('/api/customers', router))
 export default router;
