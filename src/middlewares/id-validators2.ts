@@ -77,7 +77,7 @@ export function createIdValidator(options: IdValidatorOptions = {})
 export const validateCustomerId = createIdValidator({ entityName: 'customer' });
 
 // Middleware para validar el parámetro `id` en rutas de Service.
-export const validateServiceId = createIdValidator({ entityName: 'service' });
+export const validateProductId = createIdValidator({ entityName: 'product' });
 
 // Middleware para validar el parámetro `id` en rutas de Session.
 export const validateSessionId = createIdValidator({ entityName: 'session' });

@@ -16,7 +16,7 @@ import {
   createCustomer,     // POST / -> crear un customer
   updateCustomer,     // PUT /:id -> actualizar un customer por id
   deleteCustomer      // DELETE /:id -> eliminar un customer por id
-} from '@/controllers/customer.controller';
+} from '@/modules/customer/customer.controller';
 
 // Crea una instancia de router independiente
 const router = Router();

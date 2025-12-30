@@ -5,15 +5,15 @@ import cors from 'cors';
 // Importa Helmet, un conjunto de middlewares de seguridad (cabeceras HTTP)
 import helmet from 'helmet';
 // Importa el router de customer, que maneja las rutas /api/customers
-import customersRoutes from '@/routes/customer.routes';
-// Importa el router de service, que maneja las rutas /api/services
-import servicesRoutes from '@/routes/service.routes';
+import customersRoutes from '@/modules/customer/customer.routes';
+// Importa el router de product, que maneja las rutas /api/products
+import productsRoutes from '@/modules/product/product.routes';
 // Importa el router de session, que maneja las rutas /api/sessions
-import sessionsRoutes from '@/routes/session.routes';
+import sessionsRoutes from '@/modules/session/session.routes';
 // Importa el router de payment, que maneja las rutas /api/payments
-import paymentsRoutes from '@/routes/payment.routes';
+import paymentsRoutes from '@/modules/payment/payment.routes';
 // Importa el router de verification, que maneja las rutas /api/verifications
-import verificationsRoutes from '@/routes/verification.routes';
+import verificationsRoutes from '@/modules/verification/verification.routes';
 // Importa el router de servicepricerange, que maneja las rutas /api/servicepricerange
 //import servicepricerangeRoutes from './routes/servicepricerange.routes';
 
@@ -37,9 +37,9 @@ app.use(express.json());
 // Cualquier ruta definida en customerRoutes se expondrá como /api/customers/...
 app.use('/api/customers', customersRoutes);
 
-// Monta el router de services bajo el prefijo /api/services.
-// Cualquier ruta definida en serviceRoutes se expondrá como /api/services/...
-app.use('/api/services', servicesRoutes);
+// Monta el router de products bajo el prefijo /api/products.
+// Cualquier ruta definida en productRoutes se expondrá como /api/products/...
+app.use('/api/products', productsRoutes);
 
 // Monta el router de sessions bajo el prefijo /api/sessions.
 // Cualquier ruta definida en sessionRoutes se expondrá como /api/sessions/...

@@ -5,9 +5,9 @@ import { Router } from 'express';
 
 //import { validatePaymentId } from '../middlewares/id-validators2';
 
-import { uuidIdParamValidator } from '../middlewares/common.validators';
+import { uuidIdParamValidator } from '../../middlewares/common.validators';
 
-import { handleValidationErrors } from '../middlewares/validation.middleware';
+import { handleValidationErrors } from '../../middlewares/validation.middleware';
 
 // Importa los controladores (handlers) para cada operación del CRUD
 import { 
@@ -16,7 +16,7 @@ import {
   createPayment,     // POST / -> crear un payment
   updatePayment,     // PUT /:id -> actualizar un payment por id
   //deletePayment      // DELETE /:id -> eliminar un payment por id
-} from '../controllers/payment.controller';
+} from './payment.controller';
 
 // Crea una instancia de router independiente
 const router = Router();

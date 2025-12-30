@@ -20,10 +20,12 @@ import { Request, Response } from 'express';
 import { AppDataSource } from '@/config/data-source';
 
 // Importa la entidad que mapea la tabla "customer"
-import { Customer } from '@/models/customer.model';
+import { Customer } from '@/modules/customer/customer.entity';
 
 // DTOs usados para tipar body (entrada) y respuesta (salida).
-import {CreateCustomerDto, UpdateCustomerDto, CustomerResponseDto,} from '@/dtos/customer.dto';
+import {CreateCustomerDto} from '@/modules/customer/create-customer.dto';
+
+import {UpdateCustomerDto} from '@/modules/customer/update-customer.dto';
 
 // ============================================================================
 // GET /api/customers
@@ -47,7 +49,7 @@ export async function listCustomers(_req: Request, res: Response)
     const items = await repo.find();
 
     // Mapea la entidad de BD → DTO de respuesta.
-    const response: CustomerResponseDto[] = items.map((c) => ({
+    const response = items.map((c) => ({
       customer_id: c.customer_id,
       name: c.name,
       email: c.email,
@@ -96,7 +98,7 @@ export async function getCustomer(req: Request<{ id: string }>, res: Response)
     }
 
     // Construye el DTO de respuesta a partir de la entidad.
-    const response: CustomerResponseDto = {
+    const response = {
       customer_id: item.customer_id,
       name: item.name,
       email: item.email,
@@ -149,7 +151,7 @@ export async function createCustomer(req: Request<{}, {}, CreateCustomerDto>, re
     const saved = await repo.save(entity);
 
     // Construye el DTO de respuesta con los datos creados.
-    const response: CustomerResponseDto = {
+    const response = {
       customer_id: saved.customer_id,
       name: saved.name,
       email: saved.email,
@@ -210,7 +212,7 @@ export async function updateCustomer(req: Request<{ id: string }, {}, UpdateCust
     const saved = await repo.save(existing);
 
     // Construye el DTO de respuesta con el registro actualizado.
-    const response: CustomerResponseDto = {
+    const response = {
       customer_id: saved.customer_id,
       name: saved.name,
       email: saved.email,

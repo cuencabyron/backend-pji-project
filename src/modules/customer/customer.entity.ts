@@ -1,8 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToMany } from 'typeorm';7
-import { Session } from './session.model';
-import { Payment } from './payment.model';
-import { Verification } from './verification.model';
-import { Service } from './service.model';
+import { Session } from '../session/session.entity';
+import { Payment } from '../payment/payment.entity';
+import { Verification } from '../verification/verification.entity';
+import { Product } from '../product/product.entity';
 
 @Entity({ name: 'customer' })
 export class Customer
@@ -29,7 +29,7 @@ export class Customer
   // ============================================
   // RELACIONES (LADO 1:N)
   // ============================================
-  @OneToMany(() => Service, s => s.customer) services!: Service[];
+  @OneToMany(() => Product, p => p.customer) products!: Product[];
   @OneToMany(() => Session, s => s.customer) sessions!: Session[];
   @OneToMany(() => Payment, p => p.customer) payments!: Payment[];
   @OneToMany(() => Verification, v => v.customer) verifications!: Verification[];

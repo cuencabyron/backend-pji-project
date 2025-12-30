@@ -1,17 +1,17 @@
 /**
- * Controladores HTTP para la entidad Service.
+ * Controladores HTTP para la entidad Product.
  *
- * Expone las operaciones CRUD básicas sobre el recurso `/api/services`:
- *  - GET    /api/services        → lista todos los servicios
- *  - GET    /api/services/:id    → obtiene un servicio por su ID
- *  - POST   /api/services        → crea un nuevo servicio asociado a un customer
- *  - PUT    /api/services/:id    → actualiza un servicio existente
- *  - DELETE /api/services/:id    → elimina un servicio por su ID
+ * Expone las operaciones CRUD básicas sobre el recurso `/api/products`:
+ *  - GET    /api/products        → lista todos los productos
+ *  - GET    /api/products/:id    → obtiene un productos por su ID
+ *  - POST   /api/products        → crea un nuevo productos asociado a un customer
+ *  - PUT    /api/products/:id    → actualiza un productos existente
+ *  - DELETE /api/products/:id    → elimina un productos por su ID
  *
  * Cada controlador:
- *  - Usa `serviceRepo()` para interactuar con la tabla `service` mediante TypeORM.
+ *  - Usa `serviceRepo()` para interactuar con la tabla `product` mediante TypeORM.
  *  - Valida datos básicos antes de tocar la base de datos.
- *  - Verifica que el `customer_id` exista cuando se crea o se cambia el dueño del servicio.
+ *  - Verifica que el `customer_id` exista cuando se crea o se cambia el dueño del producto.
  *  - Está envuelto en `try/catch` para manejar errores y devolver un 500 en caso de fallo inesperado.
  */
 
@@ -21,20 +21,20 @@ import { Request, Response } from 'express';
 // Importa la instancia de conexión/configuración de TypeORM (DataSource) que se creo en src/data-source.ts
 import { AppDataSource } from '@/config/data-source';
 
-// Importa la entidad que mapea la tabla "service"
-import { Service } from '@/models/service.model';
+// Importa la entidad que mapea la tabla "product"
+import { Product } from '@/modules/product/product.entity';
 
 // Importa la entidad Customer de TypeORM. Esta clase representa la tabla "customer" en la base de datos y su mapeo a objetos JS/TS.
-import { Customer } from '@/models/customer.model';
+import { Customer } from '@/modules/customer/customer.entity';
 
 /* Importa un helper para dar un formato estándar a las respuestas de error de la API. Lo usas en los catch para devolver siempre: { message, errorId, details }.
 import { formatError } from '@/utils/api-error'; */
 
 /**
  * Tipo que define la forma del cuerpo (body) esperado
- * al crear o actualizar un Service.
+ * al crear o actualizar un Product.
  */
-type ServiceBody = 
+type ProductBody = 
 {
   /** ID del customer al que pertenece el servicio (UUID) */
   customer_id: string;
@@ -49,29 +49,29 @@ type ServiceBody =
   active?: boolean;
 };
 
-// ====== GET /api/services ======
+// ====== GET /api/products ======
 
 /**
- * Controlador para listar todos los servicios.
+ * Controlador para listar todos los productos.
  *
- * Ruta: GET /api/services
+ * Ruta: GET /api/products
  *
  * Comportamiento:
- *  - Obtiene el repositorio de Service.
- *  - Recupera todos los servicios mediante `repo.find()`.
+ *  - Obtiene el repositorio de Product.
+ *  - Recupera todos los productos mediante `repo.find()`.
  *  - Devuelve el listado como JSON.
  *  - En caso de error inesperado, responde con 500.
  *
  * @param _req Request de Express (no se usa en este handler).
  * @param res  Response de Express, usado para enviar la respuesta al cliente.
  */
-export async function listServices(_req: Request, res: Response) 
+export async function listProducts(_req: Request, res: Response) 
 {
   try {
-    // Obtiene el repositorio de Service directamente desde el DataSource.
-    const repo = AppDataSource.getRepository(Service);
+    // Obtiene el repositorio de roduct directamente desde el DataSource.
+    const repo = AppDataSource.getRepository(Product);
 
-    // Recupera todos los registros de servicios de la BD.
+    // Recupera todos los registros de productos de la BD.
     const items = await repo.find();
 
     // Devolver el listado completo en formato JSON
@@ -79,23 +79,23 @@ export async function listServices(_req: Request, res: Response)
   } catch (err) {
 
     // Loguear el error en el servidor para diagnóstico
-    console.error('Error listando services:', err);
+    console.error('Error listando products:', err);
     
     // Responder al cliente con un error genérico 500
-    res.status(500).json({ message: 'Error listando services' });
+    res.status(500).json({ message: 'Error listando products' });
   }
 }
 
-// ====== GET /api/services/:id ======
+// ====== GET /api/products/:id ======
 
 /**
- * Controlador para obtener un servicio por su ID.
+ * Controlador para obtener un producto por su ID.
  *
- * Ruta: GET /api/services/:id
+ * Ruta: GET /api/products/:id
  *
  * Comportamiento:
  *  - Lee el parámetro `id` desde la URL.
- *  - Busca un servicio cuyo `service_id` coincida con ese `id`.
+ *  - Busca un producto cuyo `product_id` coincida con ese `id`.
  *  - Si lo encuentra, lo devuelve como JSON.
  *  - Si no existe, responde con 404.
  *  - En caso de error inesperado, responde con 500.
@@ -103,59 +103,59 @@ export async function listServices(_req: Request, res: Response)
  * @param req Request de Express con el parámetro `id` en `req.params`.
  * @param res Response de Express.
  */
-export async function getService(req: Request<{ id: string }>, res: Response) 
+export async function getProduct(req: Request<{ id: string }>, res: Response) 
 {
   try {
-    // Extraer el ID del servicio desde los parámetros de la ruta
+    // Extraer el ID del producto desde los parámetros de la ruta
     const { id } = req.params;
 
-    // Obtiene el repositorio de Service directamente desde el DataSource.
-    const repo = AppDataSource.getRepository(Service);
+    // Obtiene el repositorio de Producto directamente desde el DataSource.
+    const repo = AppDataSource.getRepository(Product);
 
-    // Buscar un servicio con ese ID en la base de datos
-    const item = await repo.findOneBy({ service_id: id });
+    // Buscar un producto con ese ID en la base de datos
+    const item = await repo.findOneBy({ product_id: id });
 
     // Si no se encontró, devolver 404
     if (!item) {
-      return res.status(404).json({ message: 'Service no encontrado' });
+      return res.status(404).json({ message: 'Product no encontrado' });
     }
 
-    // Devolver el servicio encontrado
+    // Devolver el producto encontrado
     res.json(item);
   } catch (err) {
     // Loguear el error en el servidor para diagnóstico
-    console.error('Error obteniendo service:', err);
+    console.error('Error obteniendo product:', err);
     // Responder al cliente con un error genérico 500
-    res.status(500).json({ message: 'Error obteniendo service' });
+    res.status(500).json({ message: 'Error obteniendo product' });
   }
 }
 
-// ====== POST /api/services ======
+// ====== POST /api/products ======
 
 /**
- * Controlador para crear un nuevo servicio.
+ * Controlador para crear un nuevo producto.
  *
- * Ruta: POST /api/services
+ * Ruta: POST /api/products
  *
  * Body esperado (JSON):
  *  {
- *    "customer_id": string,        // ID del cliente dueño del servicio
- *    "name": string,               // nombre del servicio
- *    "description": string,        // descripción del servicio
+ *    "customer_id": string,        // ID del cliente dueño del producto
+ *    "name": string,               // nombre del producto
+ *    "description": string,        // descripción del producto
  *    "active"?: boolean            // opcional, por defecto true
  *  }
  *
  * Comportamiento:
  *  - Valida que `customer_id`, `name` y `description` estén presentes.
  *  - Verifica que el `customer_id` exista en la tabla `customer`.
- *  - Crea y guarda el servicio en la base de datos.
- *  - Devuelve el servicio creado.
+ *  - Crea y guarda el producto en la base de datos.
+ *  - Devuelve el producto creado.
  *  - En caso de error inesperado, responde con 500.
  *
- * @param req Request de Express, con el body tipado como `ServiceBody`.
+ * @param req Request de Express, con el body tipado como `ProductBody`.
  * @param res Response de Express.
  */
-export async function createService(req: Request<{}, {}, ServiceBody>, res: Response) 
+export async function createProduct(req: Request<{}, {}, ProductBody>, res: Response) 
 {
   try {
     // Desestructurar los campos del body; `active` por defecto es true
@@ -175,32 +175,32 @@ export async function createService(req: Request<{}, {}, ServiceBody>, res: Resp
       return res.status(400).json({ message: 'customer_id no existe' });
     }
 
-    // Obtiene el repositorio de Service directamente desde el DataSource.
-    const repo = AppDataSource.getRepository(Service);
+    // Obtiene el repositorio de Product directamente desde el DataSource.
+    const repo = AppDataSource.getRepository(Product);
 
-    // Crear una nueva entidad Service en memoria con los datos recibidos
+    // Crear una nueva entidad Product en memoria con los datos recibidos
     const entity = repo.create({ customer_id, name, description, active });
 
-    // Guardar el nuevo servicio en la base de datos
+    // Guardar el nuevo producto en la base de datos
     const saved = await repo.save(entity);
 
-    // Devolver el servicio creado
+    // Devolver el producto creado
     res.status(200).json(saved);
   } catch (err: any) {
     // Loguear el error en el servidor para diagnóstico
-    console.error('Error creando service:', err);
+    console.error('Error creando product:', err);
 
     // Responder al cliente con un error genérico 500
-    res.status(500).json({ message: 'Error creando service' });
+    res.status(500).json({ message: 'Error creando product' });
   }
 }
 
-// ====== PUT /api/services/:id ======
+// ====== PUT /api/products/:id ======
 
 /**
- * Controlador para actualizar un servicio existente.
+ * Controlador para actualizar un producto existente.
  *
- * Ruta: PUT /api/services/:id
+ * Ruta: PUT /api/products/:id
  *
  * Body esperado (JSON, parcial):
  *  {
@@ -211,32 +211,32 @@ export async function createService(req: Request<{}, {}, ServiceBody>, res: Resp
  *  }
  *
  * Comportamiento:
- *  - Lee el `id` de la ruta y busca el servicio correspondiente.
+ *  - Lee el `id` de la ruta y busca el producto correspondiente.
  *  - Si no existe, responde con 404.
  *  - Si viene `customer_id`, valida que el nuevo cliente exista.
  *  - Actualiza únicamente los campos enviados en el body.
  *  - Guarda los cambios en la base de datos.
- *  - Devuelve el servicio actualizado.
+ *  - Devuelve el producto actualizado.
  *  - En caso de error inesperado, responde con 500.
  *
  * @param req Request de Express con `id` en params y un body parcial de `ServiceBody`.
  * @param res Response de Express.
  */
-export async function updateService(req: Request<{ id: string }, {}, Partial<ServiceBody>>, res: Response) 
+export async function updateProduct(req: Request<{ id: string }, {}, Partial<ProductBody>>, res: Response) 
 {
   try {
     // ID del servicio a actualizar
     const { id } = req.params;
 
-    // Obtiene el repositorio de Service directamente desde el DataSource.
-    const repo = AppDataSource.getRepository(Service);
+    // Obtiene el repositorio de Product directamente desde el DataSource.
+    const repo = AppDataSource.getRepository(Product);
 
-    // Buscar el servicio existente en la BD
-    const existing = await repo.findOneBy({ service_id: id });
+    // Buscar el producto existente en la BD
+    const existing = await repo.findOneBy({ product_id: id });
 
     // Si no existe, devolver 404
     if (!existing) {
-      return res.status(404).json({ message: 'Service no encontrado' });
+      return res.status(404).json({ message: 'Product no encontrado' });
     }
 
     // Desestructurar campos que potencialmente vienen en el body
@@ -260,20 +260,20 @@ export async function updateService(req: Request<{ id: string }, {}, Partial<Ser
     // Guardar los cambios en la base de datos
     const saved = await repo.save(existing);
 
-    // Devolver el servicio actualizado
+    // Devolver el producto actualizado
     res.json(saved);
   } catch (err) {
-    console.error('Error actualizando service:', err);
-    res.status(500).json({ message: 'Error actualizando service' });
+    console.error('Error actualizando product:', err);
+    res.status(500).json({ message: 'Error actualizando product' });
   }
 }
 
-// ====== DELETE /api/services/:id ======
+// ====== DELETE /api/products/:id ======
 
 /**
- * Controlador para eliminar un servicio por ID.
+ * Controlador para eliminar un producto por ID.
  *
- * Ruta: DELETE /api/services/:id
+ * Ruta: DELETE /api/products/:id
  *
  * Comportamiento:
  *  - Lee el `id` desde la URL.
@@ -286,30 +286,30 @@ export async function updateService(req: Request<{ id: string }, {}, Partial<Ser
  * @param req Request de Express con el parámetro `id`.
  * @param res Response de Express.
  */
-export async function deleteService(req: Request<{ id: string }>, res: Response) 
+export async function deleteProduct(req: Request<{ id: string }>, res: Response) 
 {
   try {
-    // ID del servicio a eliminar
+    // ID del product a eliminar
     const { id } = req.params;
 
-    // Obtiene el repositorio de Service directamente desde el DataSource.
-    const repo = AppDataSource.getRepository(Service);
+    // Obtiene el repositorio de Product directamente desde el DataSource.
+    const repo = AppDataSource.getRepository(Product);
 
-    // Buscar el servicio por ID en la base de datos
-    const existing = await repo.findOneBy({ service_id: id });
+    // Buscar el producto por ID en la base de datos
+    const existing = await repo.findOneBy({ product_id: id });
 
     // Si no existe, devolver 404
     if (!existing) {
-      return res.status(404).json({ message: 'Service no encontrado' });
+      return res.status(404).json({ message: 'Product no encontrado' });
     }
 
-    // Eliminar el servicio encontrado
+    // Eliminar el producto encontrado
     await repo.remove(existing);
 
     // Responder con 204 indicando que no hay contenido pero la operación fue exitosa
     res.status(204).send();
   } catch (err) {
-    console.error('Error eliminando service:', err);
-    res.status(500).json({ message: 'Error eliminando service' });
+    console.error('Error eliminando product:', err);
+    res.status(500).json({ message: 'Error eliminando product' });
   }
 }

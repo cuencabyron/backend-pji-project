@@ -26,19 +26,19 @@ import { Request, Response } from 'express';
 import { AppDataSource } from '@/config/data-source';
 
 // Importa la entidad que mapea la tabla "verification"
-import { Verification } from '@/models/verification.model';
+import { Verification } from '@/modules/verification/verification.entity';
 
 // Importa la entidad Customer de TypeORM. Esta clase representa la tabla "customer" en la base de datos y su mapeo a objetos JS/TS.
-import { Customer } from '@/models/customer.model';
+import { Customer } from '@/modules/customer/customer.entity';
 
 // Importa la entidad Session de TypeORM. Esta clase representa la tabla "session" en la base de datos y su mapeo a objetos JS/TS.
-import { Session } from '@/models/session.model';
+import { Session } from '@/modules/session/session.entity';
 
 // Importa la entidad Payment de TypeORM. Esta clase representa la tabla "payment" en la base de datos y su mapeo a objetos JS/TS.
-import { Payment } from '@/models/payment.model';
+import { Payment } from '@/modules/payment/payment.entity';
 
 // Importa un helper para dar un formato estándar a las respuestas de error de la API. Lo usas en los catch para devolver siempre: { message, errorId, details }.
-import { formatError } from '../utils/api-error'; 
+import { formatError } from '../../utils/api-error'; 
 
 /**
  * Tipo que define la forma del body esperado

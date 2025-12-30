@@ -3,7 +3,7 @@ import { Router } from 'express';
 
 //import { validateSessionId } from '../middlewares/id-validators';
 
-import { validateSessionId } from '../middlewares/id-validators2';
+import { validateSessionId } from '../../middlewares/id-validators2';
 
 // Importa los controladores (handlers) para cada operación del CRUD
 import { 
@@ -12,7 +12,7 @@ import {
   createSession,     // POST / -> crear una session
   updateSession,     // PUT /:id -> actualizar una session por id
   deleteSession      // DELETE /:id -> eliminar un session por id
-} from '../controllers/session.controller';
+} from './session.controller';
 
 // Crea una instancia de router independiente
 const router = Router();

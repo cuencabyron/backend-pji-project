@@ -3,7 +3,7 @@ import { Router } from 'express';
 
 //import { validateVerificationId } from '../middlewares/id-validators';
 
-import { validateVerificationId } from '../middlewares/id-validators2';
+import { validateVerificationId } from '../../middlewares/id-validators2';
 
 // Importa los controladores (handlers) para cada operación del CRUD
 import { 
@@ -12,7 +12,7 @@ import {
   createVerification,     // POST / -> crear un verification
   updateVerification,     // PUT /:id -> actualizar un verification por id
   deleteVerification     // DELETE /:id -> eliminar un verification por id
-} from '../controllers/verification.controller';
+} from './verification.controller';
 
 // Crea una instancia de router independiente
 const router = Router();

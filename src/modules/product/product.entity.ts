@@ -1,14 +1,14 @@
 import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToMany, ManyToOne } from 'typeorm';
-import { Customer } from './customer.model'
+import { Customer } from '../customer/customer.entity'
 //import { ServicePriceRange } from './ServicePriceRange';
 
-@Entity({ name: 'service' })
-export class Service 
+@Entity({ name: 'product' })
+export class Product
 {
   // ============================================
   // CAMPOS PROPIOS
   // ============================================
-  @PrimaryGeneratedColumn('uuid') service_id!: string;
+  @PrimaryGeneratedColumn('uuid') product_id!: string;
 
   @Column({ type: 'varchar', length: 150 }) name!: string;
 
@@ -28,7 +28,7 @@ export class Service
   // ============================================
   // RELACIONES (LADO N:1)
   // ============================================
-  @ManyToOne(() => Customer, c => c.services)
+  @ManyToOne(() => Customer, c => c.products)
   @JoinColumn({ name: 'customer_id' }) customer!: Customer;
 
   // ============================================

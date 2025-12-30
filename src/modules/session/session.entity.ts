@@ -1,9 +1,9 @@
 // Importa decoradores y tipos de TypeORM para definir una entidad y sus columnas.
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
 
-import { Customer } from './customer.model';
+import { Customer } from '../customer/customer.entity';
 
-import { Verification } from './verification.model';
+import { Verification } from '../verification/verification.entity';
 @Entity({ name: 'session' })
 export class Session 
 {

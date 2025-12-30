@@ -1,3 +1,6 @@
+// Solo para tipar, sin validación
+export type UpdateCustomerDtoType = Partial<CreateCustomerDto>;
+
 import {
   IsString,
   IsEmail,
@@ -36,48 +39,4 @@ export class CreateCustomerDto
   @IsOptional()
   @IsBoolean({ message: 'active debe ser un booleano' })
   active?: boolean;
-}
-
-/**
- * DTO para actualizar parcialmente un Customer.
- * Igual que CreateCustomerDto pero todos los campos son opcionales.
- */
-export class UpdateCustomerDto {
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  name?: string;
-
-  @IsOptional()
-  @IsEmail()
-  @MaxLength(100)
-  email?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(20)
-  phone?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  address?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  active?: boolean;
-}
-
-/**
- * DTO de respuesta. Sirve para controlar qué
- * campos expones al frontend.
- */
-export interface CustomerResponseDto 
-{
-  customer_id: string;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  active: boolean;
 }
