@@ -29,7 +29,7 @@ export class Customer
   // ============================================
   // RELACIONES (LADO 1:N)
   // ============================================
-  @OneToMany(() => Product, p => p.customer) products!: Product[];
+  @OneToMany(() => Product, pr => pr.customer) products!: Product[];
   @OneToMany(() => Session, s => s.customer) sessions!: Session[];
   @OneToMany(() => Payment, p => p.customer) payments!: Payment[];
   @OneToMany(() => Verification, v => v.customer) verifications!: Verification[];
