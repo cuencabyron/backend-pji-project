@@ -1,8 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToMany } from 'typeorm';7
-import { Session } from '../session/session.entity';
-import { Payment } from '../payment/payment.entity';
-import { Verification } from '../verification/verification.entity';
-import { Product } from '../product/product.entity';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany} from 'typeorm';7
+import { Session } from '@/modules/session/session.entity';
+import { Payment } from '@/modules/payment/payment.entity';
+import { Verification } from '@/modules/verification/verification.entity';
+import { Product } from '@/modules/product/product.entity';
 
 @Entity({ name: 'customer' })
 export class Customer

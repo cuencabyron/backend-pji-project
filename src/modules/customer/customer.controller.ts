@@ -9,7 +9,6 @@ import {CreateCustomerDto} from '@/modules/customer/create-customer.dto';
 
 import {UpdateCustomerDto} from '@/modules/customer/update-customer.dto';
 
-
 export async function listCustomers(_req: Request, res: Response) 
 {
   try {
@@ -92,7 +91,6 @@ export async function createCustomer(req: Request<{}, {}, CreateCustomerDto>, re
       active: saved.active,
     };
 
-    // Devuelve el recurso recién creado con código 201.
     res.status(201).json(response);
   } catch (err) {
     console.error('Error creando customer:', err);
