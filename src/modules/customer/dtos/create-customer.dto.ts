@@ -1,4 +1,3 @@
-// Solo para tipar, sin validación
 export type UpdateCustomerDtoType = Partial<CreateCustomerDto>;
 
 import {

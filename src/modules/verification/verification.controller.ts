@@ -1,4 +1,3 @@
-
 import { Request, Response } from 'express';
 
 import { AppDataSource } from '@/config/data-source';
@@ -11,9 +10,9 @@ import { Session } from '@/modules/session/session.entity';
 
 import { Payment } from '@/modules/payment/payment.entity';
 
-import {CreateVerificationDto} from '@/modules/verification/create-verification.dto';
+import {CreateVerificationDto} from '@/modules/verification/dtos/create-verification.dto';
 
-import {UpdateVerificationDto} from '@/modules/verification/update-verification.dto';
+import {UpdateVerificationDto} from '@/modules/verification/dtos/update-verification.dto';
 
 
 

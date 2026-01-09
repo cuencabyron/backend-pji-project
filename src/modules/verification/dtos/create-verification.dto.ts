@@ -1,5 +1,3 @@
-export type UpdateVerificationDtoType = Partial<CreateVerificationDto>;
-
 import {
   IsString,
   IsUUID,

@@ -1,162 +1,183 @@
+/**
+ * Controladores HTTP (controllers) para la entidad Customer.
+ *
+ * Estos handlers:
+ *   - Reciben la petición HTTP (Request) y construyen la respuesta (Response).
+ *   - Llaman a las funciones de la capa de servicios (customer.service).
+ *   - Traducen resultados / errores a códigos HTTP (200, 201, 400, 404, 500, etc.).
+ *
+ * Importante:
+ *   - Aquí NO va la lógica de acceso a datos (eso está en los services).
+ *   - Aquí NO debería ir lógica de negocio pesada; solo orquestación y manejo de HTTP.
+ */
 
+// Tipos de Express para tipar las funciones de controlador.
 import { Request, Response } from 'express';
 
-import { AppDataSource } from '@/config/data-source';
+// Funciones de la capa de servicio que encapsulan la lógica de acceso a datos
+// y reglas básicas de negocio para Customer.
+import {
+  findAllCustomers,
+  findCustomerById,
+  createCustomerService,
+  updateCustomerService,
+  deleteCustomerService,
+} from '@/modules/product/dtos/customer.service';
 
-import { Customer } from '@/modules/customer/customer.entity';
+// ============================================================================
+// GET /api/customers
+// ============================================================================
 
-import {CreateCustomerDto} from '@/modules/customer/create-customer.dto';
-
-import {UpdateCustomerDto} from '@/modules/customer/update-customer.dto';
-
+/**
+ * Lista todos los customers.
+ */
 export async function listCustomers(_req: Request, res: Response) 
 {
   try {
-    const repo = AppDataSource.getRepository(Customer);
-
-    const items = await repo.find();
-
-    const response = items.map((c) => ({
-      customer_id: c.customer_id,
-      name: c.name,
-      email: c.email,
-      phone: c.phone,
-      address: c.address,
-      active: c.active,
-    }));
-
-    res.json(response);
+    const items = await findAllCustomers();
+    res.json(items);
   } catch (err) {
     console.error('Error listando customers:', err);
     res.status(500).json({ message: 'Error listando customers' });
   }
 }
 
+// ============================================================================
+// GET /api/customers/:id
+// ============================================================================
 
-export async function getCustomer(req: Request<{ id: string }>, res: Response) 
-{
+/**
+ * Devuelve un customer por su ID.
+ */
+export async function getCustomer(req: Request<{ id: string }>, res: Response) {
   try {
     const { id } = req.params;
-
-    const repo = AppDataSource.getRepository(Customer);
-
-    const item = await repo.findOneBy({ customer_id: id });
+    const item = await findCustomerById(id);
 
     if (!item) {
       return res.status(404).json({ message: 'Customer no encontrado' });
     }
 
-    const response = 
-    {
-      customer_id: item.customer_id,
-      name: item.name,
-      email: item.email,
-      phone: item.phone,
-      address: item.address,
-      active: item.active,
-    };
-
-    res.json(response);
+    res.json(item);
   } catch (err) {
     console.error('Error obteniendo customer:', err);
     res.status(500).json({ message: 'Error obteniendo customer' });
   }
 }
 
-export async function createCustomer(req: Request<{}, {}, CreateCustomerDto>, res: Response) 
+// ============================================================================
+// POST /api/customers
+// ============================================================================
+
+/**
+ * Crea un nuevo customer.
+ *
+ * Manejo de errores de negocio:
+ * - Si el servicio lanza 'EMAIL_IN_USE' → 409 Conflict.
+ * - Otros errores → 500.
+ */
+export async function createCustomer(req: Request, res: Response) 
 {
   try {
-    const { name, email, phone, address, active = true } = req.body ?? {};
+    const { name, email, phone, address, active } = req.body;
 
-    if (!name || !email || !phone || !address) 
-    {
-      return res
-        .status(400)
-        .json({ message: 'name, email, phone, address son requeridos' });
+    // Validación rápida de campos obligatorios (además de lo que haga class-validator)
+    if (!name || !email || !phone || !address) {
+      return res.status(400).json({
+        message: 'name, email, phone, address son requeridos',
+      });
     }
 
-    const repo = AppDataSource.getRepository(Customer);
+    const saved = await createCustomerService({
+      name,
+      email,
+      phone,
+      address,
+      active,
+    });
 
-    const entity = repo.create({ name, email, phone, address, active });
+    res.status(201).json(saved);
+  } catch (err: any) {
+    // Regla de negocio: email ya está en uso
+    if (
+      err?.code === 'EMAIL_IN_USE' ||
+      err?.message === 'EMAIL_IN_USE'
+    ) {
+      return res.status(409).json({
+        message: 'El email ya está en uso por otro customer',
+      });
+    }
 
-    const saved = await repo.save(entity);
-
-    const response = 
-    {
-      customer_id: saved.customer_id,
-      name: saved.name,
-      email: saved.email,
-      phone: saved.phone,
-      address: saved.address,
-      active: saved.active,
-    };
-
-    res.status(201).json(response);
-  } catch (err) {
     console.error('Error creando customer:', err);
     res.status(500).json({ message: 'Error creando customer' });
   }
 }
 
+// ============================================================================
+// PUT /api/customers/:id
+// ============================================================================
 
-export async function updateCustomer(req: Request<{ id: string }, {}, UpdateCustomerDto>, res: Response) 
+/**
+ * Actualiza parcialmente un customer existente.
+ *
+ * Manejo de errores de negocio:
+ * - Si el servicio devuelve null → 404.
+ * - Si el servicio lanza 'EMAIL_IN_USE' → 409 Conflict.
+ * - Otros errores → 500.
+ */
+export async function updateCustomer(req: Request<{ id: string }>, res: Response) 
 {
   try {
     const { id } = req.params;
+    const { name, email, phone, address, active } = req.body;
 
-    const repo = AppDataSource.getRepository(Customer);
+    const updated = await updateCustomerService(id, 
+    {
+      name,
+      email,
+      phone,
+      address,
+      active,
+    });
 
-    const existing = await repo.findOneBy({ customer_id: id });
-
-    if (!existing) {
+    if (!updated) {
       return res.status(404).json({ message: 'Customer no encontrado' });
     }
 
-    const { name, email, phone, address, active } = req.body ?? {};
+    res.json(updated);
+  } catch (err: any) {
+    if (
+      err?.code === 'EMAIL_IN_USE' ||
+      err?.message === 'EMAIL_IN_USE'
+    ) {
+      return res.status(409).json({
+        message: 'El email ya está en uso por otro customer',
+      });
+    }
 
-    if (name !== undefined) existing.name = name;
-    if (email !== undefined) existing.email = email;
-    if (phone !== undefined) existing.phone = phone;
-    if (address !== undefined) existing.address = address;
-    if (active !== undefined) existing.active = active;
-
-    const saved = await repo.save(existing);
-
-    const response = 
-    {
-      customer_id: saved.customer_id,
-      name: saved.name,
-      email: saved.email,
-      phone: saved.phone,
-      address: saved.address,
-      active: saved.active,
-    };
-
-    res.json(response);
-  } catch (err) {
     console.error('Error actualizando customer:', err);
     res.status(500).json({ message: 'Error actualizando customer' });
   }
 }
 
-
 export async function deleteCustomer(req: Request<{ id: string }>, res: Response) 
 {
   try {
     const { id } = req.params;
+    const deleted = await deleteCustomerService(id);
 
-    const repo = AppDataSource.getRepository(Customer);
-
-    const existing = await repo.findOneBy({ customer_id: id });
-
-    if (!existing) {
+    if (!deleted) {
       return res.status(404).json({ message: 'Customer no encontrado' });
     }
 
-    await repo.remove(existing);
-
     return res.status(204).send();
-  } catch (err) {
+  } catch (err: any) {
+    if (err?.code === 'CUSTOMER_HAS_ACTIVE_PAYMENTS') {
+      return res.status(409).json({
+        message: 'No se puede eliminar el customer porque tiene pagos activos.',
+      });
+    }
+
     console.error('Error eliminando customer:', err);
     return res.status(500).json({ message: 'Error eliminando customer' });
   }

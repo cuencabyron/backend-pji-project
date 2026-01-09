@@ -7,9 +7,9 @@ import { Session } from '@/modules/session/session.entity';
 
 import { Customer } from '@/modules/customer/customer.entity';
 
-import {CreateSessionDto} from '@/modules/session/create-session.dto';
+import {CreateSessionDto} from '@/modules/session/dtos/create-session.dto';
 
-import {UpdateSessionDto} from '@/modules/session/update-session.dto';
+import {UpdateSessionDto} from '@/modules/session/dtos/update-session.dto';
 
 
 export async function listSessions(_req: Request, res: Response) 

@@ -1,6 +1,3 @@
-// Solo para tipar, sin validación
-export type UpdateSessionDtoType = Partial<CreateSessionDto>;
-
 import 
 {
   IsString,

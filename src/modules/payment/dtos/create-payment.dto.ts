@@ -1,5 +1,3 @@
-export type UpdatePaymentDtoType = Partial<CreatePaymentDto>;
-
 import {
   IsString,
   IsUUID,

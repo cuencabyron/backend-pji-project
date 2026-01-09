@@ -7,9 +7,9 @@ import { Payment } from '@/modules/payment/payment.entity';
 
 import { Customer } from '@/modules/customer/customer.entity';
 
-import {CreatePaymentDto} from '@/modules/payment/create-payment.dto';
+import {CreatePaymentDto} from '@/modules/payment/dtos/create-payment.dto';
 
-import {UpdatePaymentDto} from '@/modules/payment/update-payment.dto';
+import {UpdatePaymentDto} from '@/modules/payment/dtos/update-payment.dto';
 
 export async function listPayments(_req: Request, res: Response) 
 {

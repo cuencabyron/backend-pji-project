@@ -6,9 +6,9 @@ import { Product } from '@/modules/product/product.entity';
 
 import { Customer } from '@/modules/customer/customer.entity';
 
-import {CreateProductDto} from '@/modules/product/create-product.dto';
+import {CreateProductDto} from '@/modules/product/dtos/create-product.dto';
 
-import {UpdateProductDto} from '@/modules/product/update-product.dto';
+import {UpdateProductDto} from '@/modules/product/dtos/update-product.dto';
 
 export async function listProducts(_req: Request, res: Response) 
 {

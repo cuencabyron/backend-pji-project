@@ -1,5 +1,3 @@
-export type UpdateProductDtoType = Partial<CreateProductDto>;
-
 import {
   IsString,
   IsUUID,
