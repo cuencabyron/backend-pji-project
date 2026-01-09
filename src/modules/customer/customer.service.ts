@@ -136,7 +136,8 @@ export async function updateCustomerService(id: string, dto: UpdateCustomerDto,)
   }
 
   // 2) Si viene un email en el DTO y es diferente del actual, validar unicidad
-  if (dto.email && dto.email !== existing.email) {
+  if (dto.email && dto.email !== existing.email) 
+  {
     const otherWithSameEmail = await repo.findOne({
       where: { email: dto.email },
     });
