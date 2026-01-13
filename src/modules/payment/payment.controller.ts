@@ -1,92 +1,130 @@
+/** 
+ * Controladores HTTP para la entidad Payment.
+ *
+ * Estas funciones son los "handlers" que atienden las rutas:
+ *   - GET    /api/payments
+ *   - GET    /api/payments/:id
+ *   - POST   /api/payments
+ *   - PUT    /api/payments/:id
+ *   - DELETE /api/payments/:id
+ *
+ * Responsabilidades del controller:
+ *   1) Leer datos de la petición (params, body).
+ *   2) Llamar a la capa de servicios (payment.service.ts).
+ *   3) Traducir el resultado / errores de negocio a respuestas HTTP:
+ *        - 200 OK
+ *        - 201 Created
+ *        - 204 No Content
+ *        - 400 Bad Request
+ *        - 404 Not Found
+ *        - 500 Internal Server Error
+ */
 
+// Tipos de Express para tipar las funciones de controlador.
 import { Request, Response } from 'express';
 
-import { AppDataSource } from '@/config/data-source';
+// Funciones de la capa de servicio que encapsulan la lógica de acceso a datos
+// y reglas básicas de negocio para Payment.
+import {
+  findAllPayments,
+  findPaymentById,
+  createPaymentService,
+  updatePaymentService,
+  deletePaymentService,
+} from '@/modules/payment/payment.service';
 
-import { Payment } from '@/modules/payment/payment.entity';
-
-import { Customer } from '@/modules/customer/customer.entity';
-
-import {CreatePaymentDto} from '@/modules/payment/dtos/create-payment.dto';
-
-import {UpdatePaymentDto} from '@/modules/payment/dtos/update-payment.dto';
-
+/**
+ * GET /api/payments
+ *
+ * Lista todos los payments registrados.
+ *
+ * - No usa parámetros ni body.
+ * - Llama al servicio `findAllPayments`, que se encarga de consultar la BD.
+ * - Devuelve el arreglo de payments como JSON.
+ */
 export async function listPayments(_req: Request, res: Response) 
 {
   try {
-    const repo = AppDataSource.getRepository(Payment);
+    // Recupera todos los payments desde la capa de servicios.
+    const items = await findAllPayments();
 
-    const items = await repo.find();
-
-    const response = items.map((c) => ({
-      customer_id: c.customer_id,
-      amount: c.amount,
-      currency: c.currency,
-      method: c.method,
-      status: c.status,
-      external_ref: c.external_ref,
-    }));
-
-    res.json(response);
+    // Responde con la lista de payments.
+    res.json(items);
   } catch (err) {
+    // Si ocurre un error inesperado (BD caída, bug, etc.),
+    // se escribe en consola y se devuelve 500.
     console.error('Error listando payments:', err);
     res.status(500).json({ message: 'Error listando payments' });
   }
 }
 
+/**
+ * GET /api/payments/:id
+ *
+ * Devuelve un payment específico por su ID.
+ *
+ * - Lee `id` desde los parámetros de ruta.
+ * - Llama a `findPaymentById(id)` para buscar en la BD.
+ * - Si no existe, responde con 404.
+ * - Si existe, lo devuelve como JSON (incluyendo su customer asociado).
+ */
 export async function getPayment(req: Request<{ id: string }>, res: Response) 
 {
   try {
+    // Extrae el ID de los parámetros de la URL.
     const { id } = req.params;
 
-    const repo = AppDataSource.getRepository(Payment);
+    // Consulta el pago por ID en la capa de servicios.
+    const item = await findPaymentById(id);
 
-    const item = await repo.findOneBy({ payment_id: id });
-
+    // Si no se encontró, responder 404.
     if (!item) {
       return res.status(404).json({ message: 'Payment no encontrado' });
     }
 
-    const response = 
-    {
-      customer_id: item.customer_id,
-      amount: item.amount,
-      currency: item.currency,
-      method: item.method,
-      status: item.status,
-      external_ref: item.external_ref,
-    };
-
-    res.json(response);
+    // Devolver el payment encontrado.
+    res.json(item);
   } catch (err) {
     console.error('Error obteniendo payment:', err);
     res.status(500).json({ message: 'Error obteniendo payment' });
   }
 }
 
-export async function createPayment(req: Request<{}, {}, CreatePaymentDto>, res: Response) 
+/**
+ * POST /api/payments
+ *
+ * Crea un nuevo payment.
+ *
+ * - Lee el body con los datos del pago:
+ *     - customer_id (obligatorio)
+ *     - amount (obligatorio)
+ *     - currency (opcional en esta validación básica)
+ *     - method (obligatorio)
+ *     - status (opcional, por defecto 'pending' a nivel de servicio)
+ *     - external_ref (opcional en esta validación básica, pero requerido en el DTO)
+ * - Valida campos mínimos requeridos:
+ *     - Si falta customer_id, amount o method → 400 Bad Request.
+ * - Llama a `createPaymentProduct(...)`, que:
+ *     - Verifica que el customer exista (si no, lanza error con code 'CUSTOMER_NOT_FOUND').
+ *     - Crea y guarda el payment en la BD.
+ * - Devuelve el payment creado con 201 (Created).
+ */
+export async function createPayment(req: Request, res: Response) 
 {
   try {
-    const { customer_id, amount, currency, method, status, external_ref } =
-      req.body ?? {};
+    // Extrae los campos del body. `?? {}` evita errores si el body viene undefined.
+    const { customer_id, amount, currency, method, status, external_ref } = req.body ?? {};
 
-    if (!customer_id || !amount || !currency || !method || !status || !external_ref) 
+    // Validación rápida de campos obligatorios mínimos.
+    if (!customer_id || amount == null || !method) 
     {
       return res.status(400).json({
-        message:
-          'customer_id, amount, currency, method, status, external_ref son requeridos',
+        message: 'customer_id, amount y method son requeridos',
       });
     }
 
-    const customerRepo = AppDataSource.getRepository(Customer);
-    const exists = await customerRepo.findOneBy({ customer_id });
-    if (!exists) {
-      return res.status(400).json({ message: 'customer_id no existe' });
-    }
-
-    const repo = AppDataSource.getRepository(Payment);
-
-    const entity = repo.create({
+    // Delegamos la lógica de creación a la capa de servicios.
+    const saved = await createPaymentService({
       customer_id,
       amount,
       currency,
@@ -95,89 +133,101 @@ export async function createPayment(req: Request<{}, {}, CreatePaymentDto>, res:
       external_ref,
     });
 
-    const saved = await repo.save(entity);
+    // Devolvemos el pago creado con código 201.
+    res.status(201).json(saved);
+  } catch (err: any) {
+    // Regla de negocio: el customer_id no existe en la BD
+    if (err?.code === 'CUSTOMER_NOT_FOUND') {
+      return res
+        .status(400)
+        .json({ message: 'customer_id no existe en la BD' });
+    }
 
-    const response = 
-    {
-      customer_id: saved.customer_id,
-      amount: saved.amount,
-      currency: saved.currency,
-      method: saved.method,
-      status: saved.status,
-      external_ref: saved.external_ref,
-    };
-
-    res.status(200).json(response);
-  } catch (err) {
+    // Cualquier otro error se maneja como 500 genérico.
     console.error('Error creando payment:', err);
     res.status(500).json({ message: 'Error creando payment' });
   }
 }
 
-export async function updatePayment(req: Request<{ id: string }, {}, UpdatePaymentDto>, res: Response) 
+/**
+ * PUT /api/payments/:id
+ *
+ * Actualiza parcialmente un payment existente.
+ *
+ * - Lee `id` desde la ruta y los campos a actualizar desde el body.
+ * - Construye un objeto DTO (UpdatePaymentDto) con los campos recibidos.
+ * - Llama a `updatePaymentService(id, dto)`:
+ *     - Si el payment no existe → devuelve null.
+ *     - Si viene un customer_id nuevo, verifica que el Customer exista.
+ *         - Si no existe → lanza error con code 'CUSTOMER_NOT_FOUND'.
+ *     - Actualiza los campos definidos y guarda en la BD.
+ * - Si `updatePaymentService` devuelve null → responde 404.
+ * - Si funciona → devuelve el payment actualizado (200 OK).
+ */
+export async function updatePayment(req: Request<{ id: string }>, res: Response) 
 {
   try {
+    // ID del payment a actualizar.
     const { id } = req.params;
 
-    const repo = AppDataSource.getRepository(Payment);
+    // Datos que se desean actualizar.
+    const { customer_id, amount, currency, method, status, external_ref } = req.body ?? {};
 
-    const existing = await repo.findOneBy({ payment_id: id });
+    // Llamada a la capa de servicios para aplicar la actualización.
+    const updated = await updatePaymentService(id, {
+      customer_id,
+      amount,
+      currency,
+      method,
+      status,
+      external_ref,
+    });
 
-    if (!existing) {
-      return res.status(404).json({ message: 'payment no encontrado' });
+    // Si no se encontró el payment, responder 404.
+    if (!updated) {
+      return res.status(404).json({ message: 'Payment no encontrado' });
     }
 
-    const { customer_id, amount, currency, method, status, external_ref } =
-      req.body ?? {};
-
-    if (customer_id !== undefined) {
-      const customerRepo = AppDataSource.getRepository(Customer);
-      const exists = await customerRepo.findOneBy({ customer_id });
-      if (!exists) {
-        return res.status(400).json({ message: 'customer_id no existe' });
-      }
-      (existing as any).customer_id = customer_id;
+    // Devolver el pago actualizado.
+    res.json(updated);
+  } catch (err: any) {
+    // Caso específico: el customer_id proporcionado no existe.
+    if (err?.code === 'CUSTOMER_NOT_FOUND') {
+      return res
+        .status(400)
+        .json({ message: 'customer_id no existe en la BD' });
     }
 
-    if (amount !== undefined) existing.amount = String(amount);
-    if (currency !== undefined) existing.currency = currency;
-    if (method !== undefined) existing.method = method;
-    if (status !== undefined) existing.status = status as any;
-    if (external_ref !== undefined) existing.external_ref = external_ref;
-
-    const saved = await repo.save(existing);
-
-    const response = 
-    {
-      customer_id: saved.customer_id,
-      amount: saved.amount,
-      currency: saved.currency,
-      method: saved.method,
-      status: saved.status,
-      external_ref: saved.external_ref,
-    };
-
-    res.json(response);
-  } catch (err) {
     console.error('Error actualizando payment:', err);
     res.status(500).json({ message: 'Error actualizando payment' });
   }
 }
 
+/**
+ * DELETE /api/payments/:id
+ *
+ * Elimina un payment por su ID.
+ *
+ * - Lee `id` desde los parámetros de ruta.
+ * - Llama a `deletePaymentService(id)`:
+ *     - Devuelve el número de filas borradas (0 si no existía).
+ * - Si `deleted === 0` → responde 404 (no había payment con ese id).
+ * - Si `deleted > 0` → responde 204 (No Content), indicando borrado correcto.
+ */
 export async function deletePayment(req: Request<{ id: string }>, res: Response) 
 {
   try {
+    const { id } = req.params;
 
-    const repo = AppDataSource.getRepository(Payment);
+    // Ejecuta el borrado en la capa de servicios.
+    const deleted = await deletePaymentService(id);
 
-    const existing = await repo.findOneBy({ payment_id: req.params.id });
-
-    if (!existing) {
+    // Si no se borró ninguna fila, es que el payment no existía.
+    if (!deleted) {
       return res.status(404).json({ message: 'Payment no encontrado' });
     }
 
-    await repo.remove(existing);
-
+    // Borrado correcto: no se devuelve cuerpo, solo 204.
     res.status(204).send();
   } catch (err) {
     console.error('Error eliminando payment:', err);

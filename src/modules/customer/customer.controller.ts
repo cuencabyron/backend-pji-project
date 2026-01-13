@@ -1,5 +1,4 @@
-
-/** Controladores HTTP (controllers) para la entidad Customer.
+/** Controladores HTTP para la entidad Customer.
  *
  * Este archivo expone las funciones (handlers) que se asocian a las rutas
  * REST de la API. Cada función:
@@ -24,8 +23,8 @@
 // Tipos de Express para tipar las funciones de controlador.
 import { Request, Response } from 'express';
 
-// Funciones de la capa de servicio que encapsulan la lógica de acceso a datos
-// y reglas básicas de negocio para Customer.
+/* Funciones de la capa de servicio que encapsulan la lógica de acceso a datos
+y reglas básicas de negocio para Customer.*/
 import {
   findAllCustomers,
   findCustomerById,

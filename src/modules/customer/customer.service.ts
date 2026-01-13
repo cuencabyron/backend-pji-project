@@ -1,5 +1,5 @@
-/**
- * Servicios de dominio para la entidad Customer.
+/** 
+ * Servicios (capa de negocio) para la entidad Customer.
  *
  * Aquí se implementa la lógica de acceso a datos y reglas básicas de negocio
  * relacionadas con clientes (Customer), utilizando TypeORM.
@@ -76,8 +76,8 @@ export async function findCustomerById(id: string): Promise<Customer | null>
   return customer;
 }
 
-/**
- * Crea un nuevo customer aplicando reglas de negocio:
+/** 
+ * Crea un nuevo customer en la base de datos a partir de un DTO de creación aplicando reglas de negocio:
  * - Normaliza el teléfono.
  * - Verifica que no exista ya otro customer con el mismo email.
  *
@@ -115,8 +115,8 @@ export async function createCustomerService(dto: CreateCustomerDto,): Promise<Cu
   return saved;
 }
 
-/**
- * Actualiza parcialmente un customer existente.
+/** 
+ * Actualiza parcialmente un customer existente a partir de un DTO de actualización.
  *
  * Reglas de negocio:
  * - Si el email cambia, se verifica que no haya otro customer con ese email.
@@ -161,7 +161,7 @@ export async function updateCustomerService(id: string, dto: UpdateCustomerDto,)
   return saved;
 }
 
-/**
+/** 
  * Elimina un customer por su ID.
  *
  * Reglas de negocio:

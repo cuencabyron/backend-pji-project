@@ -1,236 +1,286 @@
+/** 
+ * Controladores HTTP para la entidad Verification.
+ *
+ * Estas funciones son los "handlers" que atienden las rutas:
+ *   - GET    /api/verifications
+ *   - GET    /api/verifications/:id
+ *   - POST   /api/verifications
+ *   - PUT    /api/verifications/:id
+ *   - DELETE /api/verifications/:id
+ *
+ * Responsabilidades del controller:
+ *   1) Leer datos de la petición (params, body).
+ *   2) Llamar a la capa de servicios (verification.service.ts).
+ *   3) Traducir el resultado / errores de negocio a respuestas HTTP:
+ *        - 200 OK
+ *        - 201 Created
+ *        - 204 No Content
+ *        - 400 Bad Request
+ *        - 404 Not Found
+ *        - 500 Internal Server Error
+ */
+
+// Tipos de Express para tipar las funciones de controlador.
 import { Request, Response } from 'express';
 
-import { AppDataSource } from '@/config/data-source';
+/**
+ * Funciones de la capa de servicio que encapsulan la lógica de acceso a datos
+ * y reglas básicas de negocio para Verification.
+ *
+ * Aquí NO se hace SQL directo ni operaciones de TypeORM, eso vive en
+ * `verification.service.ts`. El controller solo delega y maneja HTTP.
+ */
+import {
+  findAllVerifications,
+  findVerificationById,
+  createVerificationService,
+  updateVerificationService,
+  deleteVerificationService,
+} from '@/modules/verification/verification.service';
 
-import { Verification } from '@/modules/verification/verification.entity';
+// ============================================================================
+// GET /api/verifications
+// ============================================================================
 
-import { Customer } from '@/modules/customer/customer.entity';
-
-import { Session } from '@/modules/session/session.entity';
-
-import { Payment } from '@/modules/payment/payment.entity';
-
-import {CreateVerificationDto} from '@/modules/verification/dtos/create-verification.dto';
-
-import {UpdateVerificationDto} from '@/modules/verification/dtos/update-verification.dto';
-
-
-
+/** 
+ * Lista todas las verificaciones registradas.
+ *
+ * - No usa parámetros ni body.
+ * - Llama a `findAllVerifications()` en la capa de servicios.
+ * - Devuelve el arreglo de verifications como JSON.
+ */
 export async function listVerifications(_req: Request, res: Response) 
 {
   try {
-    const repo = AppDataSource.getRepository(Verification);
+    // Recupera todas las verifications desde la capa de servicios.
+    const items = await findAllVerifications();
 
-    const items = await repo.find(
-    {
-      relations: { customer: true, session: true, payment: true },
-      order: { created_at: 'DESC' as const },
-    });
-
+    // Responde con la lista completa.
     res.json(items);
   } catch (err) {
+    // Error inesperado (BD caída, bug, etc.): log + 500.
     console.error('Error listando verifications:', err);
     res.status(500).json({ message: 'Error listando verifications' });
   }
 }
 
+// ============================================================================
+// GET /api/verifications/:id
+// ============================================================================
+
+/** 
+ * Devuelve una verification específica por su ID.
+ *
+ * - Lee `id` del parámetro de ruta.
+ * - Llama a `findVerificationById(id)` en la capa de servicios.
+ * - Si no existe, responde 404.
+ * - Si existe, la devuelve como JSON.
+ */
 export async function getVerification(req: Request<{ id: string }>, res: Response) 
 {
   try {
-    const repo = AppDataSource.getRepository(Verification);
+    // Extrae el id desde la URL: /api/verifications/:id
+    const { id } = req.params;
 
-    const item = await repo.findOne({
-      where: { verification_id: req.params.id },
-      relations: { customer: true, session: true, payment: true },
-    });
+    // Busca la verification en la capa de servicios.
+    const item = await findVerificationById(id);
 
+    // Si no se encontró, devolver 404.
     if (!item) {
-      return res.status(404).json({ message: 'Verification no encontrado',});
+      return res
+        .status(404)
+        .json({ message: 'Verification no encontrada' });
     }
 
+    // Devolver la verification encontrada.
     res.json(item);
   } catch (err) {
-    const errorId = 'VERIFICATION_GET_ERROR';
-    console.error(errorId, err);
-    res
-      .status(500)
-      .json(formatError('Error obteniendo verification', errorId, err));
+    console.error('Error obteniendo verification:', err);
+    res.status(500).json({ message: 'Error obteniendo verification' });
   }
 }
 
-export async function createVerification(req: Request<{}, {}, VerificationBody>, res: Response) 
+// ============================================================================
+// POST /api/verifications
+// ============================================================================
+
+/** 
+ * Crea una nueva verification.
+ *
+ * - Lee del body:
+ *     - customer_id (FK obligatoria)
+ *     - session_id  (FK obligatoria)
+ *     - payment_id  (FK obligatoria)
+ *     - type        (obligatorio)
+ *     - status      (opcional, la capa de servicio puede aplicar defaults)
+ *     - attempts    (obligatorio, número de intentos)
+ * - Valida campos mínimos requeridos:
+ *     - Si falta alguno de los obligatorios → 400 Bad Request.
+ * - Llama a `createVerificationService(...)`:
+ *     - Este servicio:
+ *         - Verifica que existan el Customer, Session y Payment.
+ *         - Si alguno no existe, lanza error con code:
+ *           'CUSTOMER_NOT_FOUND' | 'SESSION_NOT_FOUND' | 'PAYMENT_NOT_FOUND'.
+ * - Si se crea correctamente, responde 201 con la verification creada.
+ */
+export async function createVerification(req: Request, res: Response) 
 {
   try {
-    const { customer_id, session_id, payment_id, type, status, attempts } =
-      req.body ?? {};
+    // Extrae los campos del body. `?? {}` evita errores si req.body es undefined.
+    const {
+      customer_id,
+      session_id,
+      payment_id,
+      type,
+      status,
+      attempts,
+    } = req.body ?? {};
 
-    if (!customer_id || !session_id || !payment_id || !type || !status || attempts == null) 
-    {
+    // Validación rápida de campos requeridos mínimos.
+    if (
+      !customer_id ||
+      !session_id ||
+      !payment_id ||
+      !type ||
+      attempts == null // chequeo explícito contra null/undefined
+    ) {
       return res.status(400).json({
         message:
-          'customer_id, session_id, payment_id, type, status y attempts son requeridos',
-        errorId: 'VERIFICATION_VALIDATION_ERROR',
+          'customer_id, session_id, payment_id, type y attempts son requeridos',
       });
     }
 
-    const [customer, session, payment] = await Promise.all([
-      AppDataSource.getRepository(Customer).findOneBy({ customer_id }),
-      AppDataSource.getRepository(Session).findOneBy({ session_id }),
-      AppDataSource.getRepository(Payment).findOneBy({ payment_id }),
-    ]);
-
-    if (!customer) 
-    {
-      return res
-        .status(400)
-        .json({ message: 'customer_id no existe', errorId: 'CUSTOMER_NOT_FOUND' });
-    }
-    if (!session) 
-    {
-      return res
-        .status(400)
-        .json({ message: 'session_id no existe', errorId: 'SESSION_NOT_FOUND' });
-    }
-    if (!payment) 
-    {
-      return res
-        .status(400)
-        .json({ message: 'payment_id no existe', errorId: 'PAYMENT_NOT_FOUND' });
-    }
-
-    const repo = AppDataSource.getRepository(Verification);
-
-    const entity = repo.create({
-      customer,
-      session,
-      payment,
+    // Delegamos la creación en la capa de servicios (reglas de negocio + BD).
+    const saved = await createVerificationService({
+      customer_id,
+      session_id,
+      payment_id,
       type,
       status,
       attempts,
     });
 
-    const saved = await repo.save(entity);
-
+    // Devolvemos la verification creada con 201 (Created).
     res.status(201).json(saved);
   } catch (err: any) {
-    const errorId = 'VERIFICATION_CREATE_ERROR';
-    console.error(errorId, err);
-
-    const payload = formatError('Error creando verification', errorId, err);
-    if (err?.sqlMessage) {
-      (payload as any).sqlMessage = err.sqlMessage;
+    // Errores de negocio específicos, señalados por `code` en el error.
+    if (err?.code === 'CUSTOMER_NOT_FOUND') {
+      return res.status(400).json({ message: 'customer_id no existe' });
+    }
+    if (err?.code === 'SESSION_NOT_FOUND') {
+      return res.status(400).json({ message: 'session_id no existe' });
+    }
+    if (err?.code === 'PAYMENT_NOT_FOUND') {
+      return res.status(400).json({ message: 'payment_id no existe' });
     }
 
-    res.status(500).json(payload);
+    // Cualquier otro error se considera 500 genérico.
+    console.error('Error creando verification:', err);
+    res.status(500).json({ message: 'Error creando verification' });
   }
 }
 
-export async function updateVerification(req: Request<{ id: string }, {}, Partial<VerificationBody>>, res: Response) 
+// ============================================================================
+// PUT /api/verifications/:id
+// ============================================================================
+
+/** 
+ * Actualiza parcialmente una verification existente.
+ *
+ * - Lee `id` desde la ruta y los posibles campos a actualizar desde el body:
+ *     - customer_id, session_id, payment_id, type, status, attempts.
+ * - Llama a `updateVerificationService(id, dto)`:
+ *     - Si no existe la verification → devuelve null.
+ *     - Si se pasa un customer_id / session_id / payment_id no válidos,
+ *       el servicio lanza errores con code:
+ *          'CUSTOMER_NOT_FOUND' | 'SESSION_NOT_FOUND' | 'PAYMENT_NOT_FOUND'.
+ * - Si `updateVerificationService` devuelve null → responde 404.
+ * - Si se actualiza correctamente → responde 200 con la verification actualizada.
+ */
+export async function updateVerification(req: Request<{ id: string }>, res: Response) 
+{
+  try {
+    // ID de la verification que se quiere actualizar.
+    const { id } = req.params;
+
+    // Datos opcionales a actualizar.
+    const {
+      customer_id,
+      session_id,
+      payment_id,
+      type,
+      status,
+      attempts,
+    } = req.body ?? {};
+
+    // Llama a la capa de servicios para aplicar la actualización.
+    const updated = await updateVerificationService(id, {
+      customer_id,
+      session_id,
+      payment_id,
+      type,
+      status,
+      attempts,
+    });
+
+    // Si no se encontró la verification, responder 404.
+    if (!updated) {
+      return res
+        .status(404)
+        .json({ message: 'Verification no encontrada' });
+    }
+
+    // Devolver la verification actualizada.
+    res.json(updated);
+  } catch (err: any) {
+    // Errores de negocio: alguna FK no existe.
+    if (err?.code === 'CUSTOMER_NOT_FOUND') {
+      return res.status(400).json({ message: 'customer_id no existe' });
+    }
+    if (err?.code === 'SESSION_NOT_FOUND') {
+      return res.status(400).json({ message: 'session_id no existe' });
+    }
+    if (err?.code === 'PAYMENT_NOT_FOUND') {
+      return res.status(400).json({ message: 'payment_id no existe' });
+    }
+
+    console.error('Error actualizando verification:', err);
+    res.status(500).json({ message: 'Error actualizando verification' });
+  }
+}
+
+// ============================================================================
+// DELETE /api/verifications/:id
+// ============================================================================
+
+/** 
+ * Elimina una verification por su ID.
+ *
+ * - Lee `id` desde los parámetros de ruta.
+ * - Llama a `deleteVerificationService(id)`:
+ *     - Devuelve el número de filas eliminadas (0 si no existía).
+ * - Si `deleted === 0` → responde 404 (no había verification con ese id).
+ * - Si `deleted > 0`  → responde 204 (No Content), indicando borrado correcto.
+ */
+export async function deleteVerification(req: Request<{ id: string }>, res: Response) 
 {
   try {
     const { id } = req.params;
 
-    const repo = AppDataSource.getRepository(Verification);
+    // Ejecuta el borrado en la capa de servicios.
+    const deleted = await deleteVerificationService(id);
 
-    const existing = await repo.findOne({
-      where: { verification_id: id },
-      relations: { customer: true, session: true, payment: true },
-    });
-
-    if (!existing) 
-    {
-      return res.status(404).json({ 
-        message: 'Verification no encontrado', 
-        errorId: 'VERIFICATION_NOT_FOUND',
-      });
+    // Si no se eliminó nada, es que la verification no existía.
+    if (!deleted) {
+      return res
+        .status(404)
+        .json({ message: 'Verification no encontrada' });
     }
 
-    const { customer_id, session_id, payment_id, type, status, attempts } =
-      req.body ?? {};
-
-    if (customer_id !== undefined) 
-    {
-      const c = await AppDataSource.getRepository(Customer).findOneBy({
-        customer_id,
-      });
-      if (!c) {
-        return res.status(400).json({ 
-          message: 'customer_id no existe',
-          errorId: 'CUSTOMER_NOT_FOUND',
-        });
-      }
-      existing.customer = c;
-    }
-
-    if (session_id !== undefined) 
-    {
-      const s = await AppDataSource.getRepository(Session).findOneBy({
-        session_id,
-      });
-      if (!s) {
-        return res.status(400).json({ 
-          message: 'session_id no existe',
-          errorId: 'SESSION_NOT_FOUND',
-        });
-      }
-      existing.session = s;
-    }
-
-    if (payment_id !== undefined) 
-    {
-      const p = await AppDataSource.getRepository(Payment).findOneBy({
-        payment_id,
-      });
-      if (!p) {
-        return res.status(400).json({ 
-          message: 'payment_id no existe', 
-          errorId: 'PAYMENT_NOT_FOUND',
-        });
-      }
-      existing.payment = p;
-    }
-
-    if (type !== undefined) existing.type = type;
-    if (status !== undefined) existing.status = status;
-    if (attempts !== undefined) existing.attempts = attempts;
-
-    const saved = await repo.save(existing);
-
-    res.json(saved);
-  } catch (err) {
-    const errorId = 'VERIFICATION_UPDATE_ERROR';
-    console.error(errorId, err);
-    res
-      .status(500)
-      .json(formatError('Error actualizando verification', errorId, err));
-  }
-}
-
-export async function deleteVerification(req: Request<{ id: string }>, res: Response) 
-{
-  try {
-    const repo = AppDataSource.getRepository(Verification);
-
-    const existing = await repo.findOneBy({
-      verification_id: req.params.id,
-    });
-
-    if (!existing) 
-    {
-      return res.status(404).json({
-        message: 'Verification no encontrado',
-        errorId: 'VERIFICATION_NOT_FOUND',
-      });
-    }
-
-    await repo.remove(existing);
-
+    // Borrado correcto: 204 sin cuerpo.
     res.status(204).send();
   } catch (err) {
-    const errorId = 'VERIFICATION_DELETE_ERROR'
-    console.error(errorId, err);
-    res
-      .status(500)
-      .json(formatError('Error eliminando verification', errorId, err));
+    console.error('Error eliminando verification:', err);
+    res.status(500).json({ message: 'Error eliminando verification' });
   }
 }

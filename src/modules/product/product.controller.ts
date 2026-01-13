@@ -1,170 +1,136 @@
+// src/modules/service/service.controller.ts
+
 import { Request, Response } from 'express';
 
-import { AppDataSource } from '@/config/data-source';
+import {
+  findAllServices,
+  findServiceById,
+  createServiceService,
+  updateServiceService,
+  deleteServiceService,
+} from '@/modules/service/service.service';
 
-import { Product } from '@/modules/product/product.entity';
-
-import { Customer } from '@/modules/customer/customer.entity';
-
-import {CreateProductDto} from '@/modules/product/dtos/create-product.dto';
-
-import {UpdateProductDto} from '@/modules/product/dtos/update-product.dto';
-
-export async function listProducts(_req: Request, res: Response) 
-{
+/**
+ * GET /api/services
+ */
+export async function listServices(_req: Request, res: Response) {
   try {
-    const repo = AppDataSource.getRepository(Product);
-
-    const items = await repo.find();
-
-    const response = items.map((c) => ({
-      customer_id: c.customer_id,
-      name: c.name,
-      description: c.description,
-      active: c.active,
-    }));
-
-    res.json(response);
+    const items = await findAllServices();
+    res.json(items);
   } catch (err) {
-    console.error('Error listando products:', err);
-    res.status(500).json({ message: 'Error listando products' });
+    console.error('Error listando services:', err);
+    res.status(500).json({ message: 'Error listando services' });
   }
 }
 
-
-export async function getProduct(req: Request<{ id: string }>, res: Response) 
-{
+/**
+ * GET /api/services/:id
+ */
+export async function getService(
+  req: Request<{ id: string }>,
+  res: Response
+) {
   try {
     const { id } = req.params;
-
-    const repo = AppDataSource.getRepository(Product);
-
-    const item = await repo.findOneBy({ product_id: id });
+    const item = await findServiceById(id);
 
     if (!item) {
-      return res.status(404).json({ message: 'Product no encontrado' });
+      return res.status(404).json({ message: 'Service no encontrado' });
     }
 
-    const response = 
-    {
-      customer_id: item.customer_id,
-      name: item.name,
-      description: item.description,
-      active: item.active,
-    };
-    
-    res.json(response);
+    res.json(item);
   } catch (err) {
-    console.error('Error obteniendo product:', err);
-    res.status(500).json({ message: 'Error obteniendo product' });
+    console.error('Error obteniendo service:', err);
+    res.status(500).json({ message: 'Error obteniendo service' });
   }
 }
 
-
-export async function createProduct(req: Request<{}, {}, CreateProductDto>, res: Response) 
-{
+/**
+ * POST /api/services
+ */
+export async function createService(req: Request, res: Response) {
   try {
-    const { customer_id, name, description, active = true } = req.body ?? {};
+    const { customer_id, name, description, active } = req.body ?? {};
 
-    if (!customer_id || !name || !description) 
-    {
+    if (!customer_id || !name || !description) {
       return res.status(400).json({
         message: 'customer_id, name y description son requeridos',
       });
     }
 
-    const customerRepo = AppDataSource.getRepository(Customer);
-    const exists = await customerRepo.findOneBy({ customer_id });
-    if (!exists) {
-      return res.status(400).json({ message: 'customer_id no existe' });
+    const saved = await createServiceService({
+      customer_id,
+      name,
+      description,
+      active,
+    });
+
+    res.status(201).json(saved);
+  } catch (err: any) {
+    if (err?.code === 'CUSTOMER_NOT_FOUND') {
+      return res
+        .status(400)
+        .json({ message: 'customer_id no existe en la BD' });
     }
 
-    const repo = AppDataSource.getRepository(Product);
-
-    const entity = repo.create({ customer_id, name, description, active });
-
-    const saved = await repo.save(entity);
-
-    const response = 
-    {
-      customer_id: saved.customer_id,
-      name: saved.name,
-      description: saved.description,
-      active: saved.active,
-    };
-
-    res.status(201).json(response);
-  } catch (err: any) {
-    console.error('Error creando product:', err);
-    res.status(500).json({ message: 'Error creando product' });
+    console.error('Error creando service:', err);
+    res.status(500).json({ message: 'Error creando service' });
   }
 }
 
-
-export async function updateProduct(req: Request<{ id: string }, {}, UpdateProductDto>, res: Response) 
-{
+/**
+ * PUT /api/services/:id
+ */
+export async function updateService(
+  req: Request<{ id: string }>,
+  res: Response
+) {
   try {
     const { id } = req.params;
-
-    const repo = AppDataSource.getRepository(Product);
-
-    const existing = await repo.findOneBy({ product_id: id });
-
-    if (!existing) {
-      return res.status(404).json({ message: 'Product no encontrado' });
-    }
-
     const { customer_id, name, description, active } = req.body ?? {};
 
-    if (customer_id !== undefined) {
-      const customerRepo = AppDataSource.getRepository(Customer);
-      const exists = await customerRepo.findOneBy({ customer_id });
-      if (!exists) {
-        return res.status(400).json({ message: 'customer_id no existe' });
-      }
-      (existing as any).customer_id = customer_id;
+    const updated = await updateServiceService(id, {
+      customer_id,
+      name,
+      description,
+      active,
+    });
+
+    if (!updated) {
+      return res.status(404).json({ message: 'Service no encontrado' });
     }
 
-    if (name !== undefined) existing.name = name;
-    if (description !== undefined) existing.description = description;
-    if (active !== undefined) existing.active = active;
+    res.json(updated);
+  } catch (err: any) {
+    if (err?.code === 'CUSTOMER_NOT_FOUND') {
+      return res
+        .status(400)
+        .json({ message: 'customer_id no existe en la BD' });
+    }
 
-    const saved = await repo.save(existing);
-
-    const response = 
-    {
-      customer_id: saved.customer_id,
-      name: saved.name,
-      description: saved.description,
-      active: saved.active,
-    };
-
-    res.json(response);
-  } catch (err) {
-    console.error('Error actualizando product:', err);
-    res.status(500).json({ message: 'Error actualizando product' });
+    console.error('Error actualizando service:', err);
+    res.status(500).json({ message: 'Error actualizando service' });
   }
 }
 
-
-export async function deleteProduct(req: Request<{ id: string }>, res: Response) 
-{
+/**
+ * DELETE /api/services/:id
+ */
+export async function deleteService(
+  req: Request<{ id: string }>,
+  res: Response
+) {
   try {
     const { id } = req.params;
+    const deleted = await deleteServiceService(id);
 
-    const repo = AppDataSource.getRepository(Product);
-
-    const existing = await repo.findOneBy({ product_id: id });
-
-    if (!existing) {
-      return res.status(404).json({ message: 'Product no encontrado' });
+    if (!deleted) {
+      return res.status(404).json({ message: 'Service no encontrado' });
     }
-
-    await repo.remove(existing);
 
     res.status(204).send();
   } catch (err) {
-    console.error('Error eliminando product:', err);
-    res.status(500).json({ message: 'Error eliminando product' });
+    console.error('Error eliminando service:', err);
+    res.status(500).json({ message: 'Error eliminando service' });
   }
 }
