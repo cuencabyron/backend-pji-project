@@ -1,23 +1,20 @@
-/** 
- * Controladores HTTP para la entidad Payment.
- *
- * Estas funciones son los "handlers" que atienden las rutas:
- *   - GET    /api/payments
- *   - GET    /api/payments/:id
- *   - POST   /api/payments
- *   - PUT    /api/payments/:id
- *   - DELETE /api/payments/:id
- *
- * Responsabilidades del controller:
- *   1) Leer datos de la petición (params, body).
- *   2) Llamar a la capa de servicios (payment.service.ts).
- *   3) Traducir el resultado / errores de negocio a respuestas HTTP:
- *        - 200 OK
- *        - 201 Created
- *        - 204 No Content
- *        - 400 Bad Request
- *        - 404 Not Found
- *        - 500 Internal Server Error
+/** Controladores HTTP para la entidad Payment.
+ *  Estas funciones son los "handlers" que atienden las rutas:
+ *    - GET    /api/payments
+ *    - GET    /api/payments/:id
+ *    - POST   /api/payments
+ *    - PUT    /api/payments/:id
+ *    - DELETE /api/payments/:id
+ *  Responsabilidades del controller:
+ *    1) Leer datos de la petición (params, body).
+ *    2) Llamar a la capa de servicios (payment.service.ts).
+ *    3) Traducir el resultado / errores de negocio a respuestas HTTP:
+ *          - 200 OK
+ *          - 201 Created
+ *          - 204 No Content
+ *          - 400 Bad Request
+ *          - 404 Not Found
+ *          - 500 Internal Server Error
  */
 
 // Tipos de Express para tipar las funciones de controlador.
@@ -33,14 +30,13 @@ import {
   deletePaymentService,
 } from '@/modules/payment/payment.service';
 
-/**
- * GET /api/payments
- *
- * Lista todos los payments registrados.
- *
- * - No usa parámetros ni body.
- * - Llama al servicio `findAllPayments`, que se encarga de consultar la BD.
- * - Devuelve el arreglo de payments como JSON.
+// ============================================================================
+// GET /api/payments
+// ============================================================================
+/** Lista todos los payments registrados.
+ *    - No usa parámetros ni body.
+ *    - Llama al servicio `findAllPayments`, que se encarga de consultar la BD.
+ *    - Devuelve el arreglo de payments como JSON.
  */
 export async function listPayments(_req: Request, res: Response) 
 {
@@ -58,20 +54,19 @@ export async function listPayments(_req: Request, res: Response)
   }
 }
 
-/**
- * GET /api/payments/:id
- *
- * Devuelve un payment específico por su ID.
- *
- * - Lee `id` desde los parámetros de ruta.
- * - Llama a `findPaymentById(id)` para buscar en la BD.
- * - Si no existe, responde con 404.
- * - Si existe, lo devuelve como JSON (incluyendo su customer asociado).
+// ============================================================================
+// GET /api/payments/:id
+// ============================================================================
+/** Devuelve un payment específico por su ID.
+ *    - Lee `id` desde los parámetros de ruta.
+ *    - Llama a `findPaymentById(id)` para buscar en la BD.
+ *    - Si no existe, responde con 404.
+ *    - Si existe, lo devuelve como JSON (incluyendo su customer asociado).
  */
 export async function getPayment(req: Request<{ id: string }>, res: Response) 
 {
   try {
-    // Extrae el ID de los parámetros de la URL.
+    // Extrae el id de los parámetros de ruta: /api/payments/:id
     const { id } = req.params;
 
     // Consulta el pago por ID en la capa de servicios.
@@ -90,24 +85,23 @@ export async function getPayment(req: Request<{ id: string }>, res: Response)
   }
 }
 
-/**
- * POST /api/payments
- *
- * Crea un nuevo payment.
- *
- * - Lee el body con los datos del pago:
- *     - customer_id (obligatorio)
- *     - amount (obligatorio)
- *     - currency (opcional en esta validación básica)
- *     - method (obligatorio)
- *     - status (opcional, por defecto 'pending' a nivel de servicio)
- *     - external_ref (opcional en esta validación básica, pero requerido en el DTO)
- * - Valida campos mínimos requeridos:
- *     - Si falta customer_id, amount o method → 400 Bad Request.
- * - Llama a `createPaymentProduct(...)`, que:
- *     - Verifica que el customer exista (si no, lanza error con code 'CUSTOMER_NOT_FOUND').
- *     - Crea y guarda el payment en la BD.
- * - Devuelve el payment creado con 201 (Created).
+// ============================================================================
+// POST /api/payments
+// ============================================================================
+/** Crea un nuevo payment.
+ *    - Lee el body con los datos del pago:
+ *        - customer_id (obligatorio)
+ *        - amount (obligatorio)
+ *        - currency (opcional en esta validación básica)
+ *        - method (obligatorio)
+ *        - status (opcional, por defecto 'pending' a nivel de servicio)
+ *        - external_ref (opcional en esta validación básica, pero requerido en el DTO)
+ *    - Valida campos mínimos requeridos:
+ *        - Si falta customer_id, amount o method → 400 Bad Request.
+ *    - Llama a `createPaymentProduct(...)`, que:
+ *        - Verifica que el customer exista (si no, lanza error con code 'CUSTOMER_NOT_FOUND').
+ *        - Crea y guarda el payment en la BD.
+ *    - Devuelve el payment creado con 201 (Created).
  */
 export async function createPayment(req: Request, res: Response) 
 {
@@ -149,20 +143,19 @@ export async function createPayment(req: Request, res: Response)
   }
 }
 
-/**
- * PUT /api/payments/:id
- *
- * Actualiza parcialmente un payment existente.
- *
- * - Lee `id` desde la ruta y los campos a actualizar desde el body.
- * - Construye un objeto DTO (UpdatePaymentDto) con los campos recibidos.
- * - Llama a `updatePaymentService(id, dto)`:
- *     - Si el payment no existe → devuelve null.
- *     - Si viene un customer_id nuevo, verifica que el Customer exista.
- *         - Si no existe → lanza error con code 'CUSTOMER_NOT_FOUND'.
- *     - Actualiza los campos definidos y guarda en la BD.
- * - Si `updatePaymentService` devuelve null → responde 404.
- * - Si funciona → devuelve el payment actualizado (200 OK).
+// ============================================================================
+// PUT /api/payments/:id
+// ============================================================================
+/** Actualiza parcialmente un payment existente.
+ *    - Lee `id` desde la ruta y los campos a actualizar desde el body.
+ *    - Construye un objeto DTO (UpdatePaymentDto) con los campos recibidos.
+ *    - Llama a `updatePaymentService(id, dto)`:
+ *      - Si el payment no existe → devuelve null.
+ *      - Si viene un customer_id nuevo, verifica que el Customer exista.
+ *          - Si no existe → lanza error con code 'CUSTOMER_NOT_FOUND'.
+ *      - Actualiza los campos definidos y guarda en la BD.
+ *    - Si `updatePaymentService` devuelve null → responde 404.
+ *    - Si funciona → devuelve el payment actualizado (200 OK).
  */
 export async function updatePayment(req: Request<{ id: string }>, res: Response) 
 {
@@ -203,20 +196,20 @@ export async function updatePayment(req: Request<{ id: string }>, res: Response)
   }
 }
 
-/**
- * DELETE /api/payments/:id
- *
- * Elimina un payment por su ID.
- *
- * - Lee `id` desde los parámetros de ruta.
- * - Llama a `deletePaymentService(id)`:
- *     - Devuelve el número de filas borradas (0 si no existía).
- * - Si `deleted === 0` → responde 404 (no había payment con ese id).
- * - Si `deleted > 0` → responde 204 (No Content), indicando borrado correcto.
+// ============================================================================
+// DELETE /api/payments/:id
+// ============================================================================
+/** Elimina un payment por su ID.
+ *    - Lee `id` desde los parámetros de ruta.
+ *    - Llama a `deletePaymentService(id)`:
+ *      - Devuelve el número de filas borradas (0 si no existía).
+ *    - Si `deleted === 0` → responde 404 (no había payment con ese id).
+ *    - Si `deleted > 0` → responde 204 (No Content), indicando borrado correcto.
  */
 export async function deletePayment(req: Request<{ id: string }>, res: Response) 
 {
   try {
+    // ID del payment que se quiere eliminar.
     const { id } = req.params;
 
     // Ejecuta el borrado en la capa de servicios.

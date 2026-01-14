@@ -1,5 +1,3 @@
-// src/modules/session/session.service.ts
-
 import { AppDataSource } from '@/config/data-source';
 import { Session } from '@/modules/session/session.entity';
 import { Customer } from '@/modules/customer/customer.entity';

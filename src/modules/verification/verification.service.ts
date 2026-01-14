@@ -1,3 +1,34 @@
+/** Servicios (capa de negocio) para la entidad Verification.
+ *  Este módulo encapsula toda la lógica relacionada con verificaciones:
+ *  - findAllVerifications:
+ *      Obtiene todas las verificaciones, incluyendo sus relaciones
+ *      con customer, session y payment.
+ *  - findVerificationById:
+ *      Busca una verificación específica por su ID (verification_id),
+ *      cargando también sus relaciones.
+ *  - createVerificationService:
+ *      Crea una nueva verificación validando primero que existan
+ *      el customer, la session y el payment asociados. Si alguno
+ *      no existe, lanza errores de negocio con códigos específicos:
+ *        - CUSTOMER_NOT_FOUND
+ *        - SESSION_NOT_FOUND
+ *        - PAYMENT_NOT_FOUND
+ *  - updateVerificationService:
+ *      Actualiza parcialmente una verificación existente.
+ *      Permite cambiar relaciones (customer, session, payment) y
+ *      campos simples (type, status, attempts). También lanza
+ *      errores de negocio si las nuevas relaciones no existen.
+ *  - deleteVerificationService:
+ *      Elimina una verificación por su ID y devuelve cuántas filas
+ *      fueron afectadas. El controller decide si responde 404 cuando
+ *      el número de filas eliminadas es 0.
+ * Nota:
+ *  Esta capa NO devuelve respuestas HTTP ni maneja códigos de estado.
+ *  Solo trabaja con entidades y DTOs. Los controladores HTTP (controllers)
+ *  son los que llaman a estos servicios y construyen la respuesta HTTP
+ *  adecuada (200, 201, 404, 500, etc.).
+ */
+
 // DataSource de TypeORM ya configurado (host, usuario, password, entidades, etc.).
 import { AppDataSource } from '@/config/data-source';
 
@@ -19,15 +50,12 @@ import { CreateVerificationDto } from '@/modules/verification/dtos/create-verifi
 // DTO que define la forma esperada de los datos para ACTUALIZAR una verification.
 import { UpdateVerificationDto } from '@/modules/verification/dtos/update-verification.dto';
 
-
-/** 
- * Obtiene todas las verificaciones registradas en la base de datos.
- *
- * Responsabilidades:
- *  - Usar el repositorio de TypeORM para la entidad Verification.
- *  - Cargar las relaciones con Customer, Session y Payment.
- *  - Ordenar por fecha de creación (created_at) en orden descendente
- *    (las verificaciones más recientes primero).
+/** Obtiene todas las verifications registradas en la base de datos.
+ *  Responsabilidades:
+ *    - Usar el repositorio de TypeORM para la entidad Verification.
+ *    - Cargar las relaciones con Customer, Session y Payment.
+ *    - Ordenar por fecha de creación (created_at) en orden descendente
+ *      (las verificaciones más recientes primero).
  *
  * Esta función NO conoce nada de HTTP. Solo devuelve datos al controller.
  */
@@ -43,17 +71,16 @@ export async function findAllVerifications()
   });
 }
 
-/** 
- * Busca una verification específica por su ID (UUID).
- * 
- * - Recibe el id como string.
- * - Devuelve:
- *     - La entidad Verification con sus relaciones (customer, session, payment),
- *       si existe.
- *     - null, si no se encontró ninguna verification con ese id.
+/** Busca una verification específica por su ID (UUID).
+ *    - Recibe el id como string.
+ *    - Devuelve:
+ *        - La entidad Verification con sus relaciones (customer, session, payment),
+ *          si existe.
+ *        - null, si no se encontró ninguna verification con ese id.
  */
 export async function findVerificationById(id: string) 
 {
+  // Obtiene el repositorio de la entidad Verification desde el DataSource.
   const repo = AppDataSource.getRepository(Verification);
 
   // Busca la verification por su clave primaria `verification_id`.
@@ -63,23 +90,20 @@ export async function findVerificationById(id: string)
   });
 }
 
-/** 
- * Crea una nueva verification a partir de un DTO de creación.
- *
- * Flujo:
- *  1) Obtiene los repositorios de Verification, Customer, Session y Payment.
- *  2) Valida que existan las entidades relacionadas:
- *       - customer_id debe existir en la tabla customer.
- *       - session_id debe existir en la tabla session.
- *       - payment_id debe existir en la tabla payment.
- *     Si alguna no existe, lanza un Error con un `code` específico:
- *       - 'CUSTOMER_NOT_FOUND'
- *       - 'SESSION_NOT_FOUND'
- *       - 'PAYMENT_NOT_FOUND'
- *  3) Crea una entidad Verification asociando los objetos relacionados.
- *  4) Aplica valor por defecto a status ('pending') si no viene en el DTO.
- *  5) Guarda la entidad en la base de datos y devuelve el registro creado.
- *
+/** Crea una nueva verification a partir de un DTO de creación.
+ *  Flujo:
+ *    1) Obtiene los repositorios de Verification, Customer, Session y Payment.
+ *    2) Valida que existan las entidades relacionadas:
+ *        - customer_id debe existir en la tabla customer.
+ *        - session_id debe existir en la tabla session.
+ *        - payment_id debe existir en la tabla payment.
+ *      Si alguna no existe, lanza un Error con un `code` específico:
+ *        - 'CUSTOMER_NOT_FOUND'
+ *        - 'SESSION_NOT_FOUND'
+ *        - 'PAYMENT_NOT_FOUND'
+ *    3) Crea una entidad Verification asociando los objetos relacionados.
+ *    4) Aplica valor por defecto a status ('pending') si no viene en el DTO.
+ *    5) Guarda la entidad en la base de datos y devuelve el registro creado.
  * @param dto Datos necesarios para crear la verification (CreateVerificationDto).
  */
 export async function createVerificationService(dto: CreateVerificationDto) 
@@ -135,26 +159,27 @@ export async function createVerificationService(dto: CreateVerificationDto)
   return verificationRepo.save(entity);
 }
 
-/** 
- * Actualiza parcialmente una verification existente a partir de un DTO de actualización.
- *
- * Flujo:
- *  1) Carga la verification actual desde la BD con sus relaciones.
- *     - Si no existe → devuelve null (el controller devolverá 404).
- *  2) Si en el DTO viene un nuevo customer_id / session_id / payment_id:
- *       - Busca la nueva entidad relacionada.
- *       - Si no existe, lanza error con code:
- *           'CUSTOMER_NOT_FOUND' | 'SESSION_NOT_FOUND' | 'PAYMENT_NOT_FOUND'.
- *       - Si existe, actualiza la relación en `existing`.
- *  3) Actualiza los campos simples (type, status, attempts) solo si están definidos.
- *  4) Guarda los cambios y devuelve la entidad actualizada.
+/** Actualiza parcialmente una verification existente a partir de un DTO de actualización.
+ *  Flujo:
+ *    1) Carga la verification actual desde la BD con sus relaciones.
+ *        - Si no existe → devuelve null (el controller devolverá 404).
+ *    2) Si en el DTO viene un nuevo customer_id / session_id / payment_id:
+ *        - Busca la nueva entidad relacionada.
+ *        - Si no existe, lanza error con code:
+ *            'CUSTOMER_NOT_FOUND' | 'SESSION_NOT_FOUND' | 'PAYMENT_NOT_FOUND'.
+ *        - Si existe, actualiza la relación en `existing`.
+ *    3) Actualiza los campos simples (type, status, attempts) solo si están definidos.
+ *    4) Guarda los cambios y devuelve la entidad actualizada.
  *
  * @param id  ID de la verification a actualizar.
  * @param dto Datos opcionales a modificar (UpdateVerificationDto).
  */
 export async function updateVerificationService(id: string, dto: UpdateVerificationDto) 
 {
+  // Repositorio de la entidad principal (Verification).
   const verificationRepo = AppDataSource.getRepository(Verification);
+
+  // Repositorios de las entidades relacionadas.
   const customerRepo = AppDataSource.getRepository(Customer);
   const sessionRepo = AppDataSource.getRepository(Session);
   const paymentRepo = AppDataSource.getRepository(Payment);
@@ -210,9 +235,7 @@ export async function updateVerificationService(id: string, dto: UpdateVerificat
   return verificationRepo.save(existing);
 }
 
-/** 
- * Elimina una verification por su ID.
- *
+/** Elimina una verification por su ID.
  * - Ejecuta un `DELETE` en la tabla `verification` filtrando por `verification_id`.
  * - Devuelve el número de filas afectadas:
  *     - 0 → no había ninguna verification con ese id.
@@ -223,6 +246,7 @@ export async function updateVerificationService(id: string, dto: UpdateVerificat
  */
 export async function deleteVerificationService(id: string) 
 {
+  // Repositorio de la entidad principal (Verification).
   const repo = AppDataSource.getRepository(Verification);
 
   // Ejecuta el borrado en la base de datos.

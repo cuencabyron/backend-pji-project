@@ -1,5 +1,3 @@
-// src/modules/session/session.controller.ts
-
 import { Request, Response } from 'express';
 import {
   findAllSessions,
@@ -9,8 +7,7 @@ import {
   deleteSessionService,
 } from '@/modules/session/session.service';
 
-export async function listSessions(_req: Request, res: Response) 
-{
+export async function listSessions(_req: Request, res: Response) {
   try {
     const items = await findAllSessions();
     res.json(items);

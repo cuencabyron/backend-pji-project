@@ -1,33 +1,28 @@
-/** 
- * Controladores HTTP para la entidad Verification.
- *
- * Estas funciones son los "handlers" que atienden las rutas:
- *   - GET    /api/verifications
- *   - GET    /api/verifications/:id
- *   - POST   /api/verifications
- *   - PUT    /api/verifications/:id
- *   - DELETE /api/verifications/:id
- *
- * Responsabilidades del controller:
- *   1) Leer datos de la petición (params, body).
- *   2) Llamar a la capa de servicios (verification.service.ts).
- *   3) Traducir el resultado / errores de negocio a respuestas HTTP:
- *        - 200 OK
- *        - 201 Created
- *        - 204 No Content
- *        - 400 Bad Request
- *        - 404 Not Found
- *        - 500 Internal Server Error
+/** Controladores HTTP para la entidad Verification.
+ *  Estas funciones son los "handlers" que atienden las rutas:
+ *    - GET    /api/verifications
+ *    - GET    /api/verifications/:id
+ *    - POST   /api/verifications
+ *    - PUT    /api/verifications/:id
+ *    - DELETE /api/verifications/:id
+ *  Responsabilidades del controller:
+ *    1) Leer datos de la petición (params, body).
+ *    2) Llamar a la capa de servicios (verification.service.ts).
+ *    3) Traducir el resultado / errores de negocio a respuestas HTTP:
+ *          - 200 OK
+ *          - 201 Created
+ *          - 204 No Content
+ *          - 400 Bad Request
+ *          - 404 Not Found
+ *          - 500 Internal Server Error
  */
 
 // Tipos de Express para tipar las funciones de controlador.
 import { Request, Response } from 'express';
 
-/**
- * Funciones de la capa de servicio que encapsulan la lógica de acceso a datos
- * y reglas básicas de negocio para Verification.
- *
- * Aquí NO se hace SQL directo ni operaciones de TypeORM, eso vive en
+/** Funciones de la capa de servicio que encapsulan la lógica de acceso a datos
+ *  y reglas básicas de negocio para Verification.
+ *  Aquí NO se hace SQL directo ni operaciones de TypeORM, eso vive en
  * `verification.service.ts`. El controller solo delega y maneja HTTP.
  */
 import {
@@ -41,13 +36,10 @@ import {
 // ============================================================================
 // GET /api/verifications
 // ============================================================================
-
-/** 
- * Lista todas las verificaciones registradas.
- *
- * - No usa parámetros ni body.
- * - Llama a `findAllVerifications()` en la capa de servicios.
- * - Devuelve el arreglo de verifications como JSON.
+/** Lista todas las verificaciones registradas.
+ *    - No usa parámetros ni body.
+ *    - Llama a `findAllVerifications()` en la capa de servicios.
+ *    - Devuelve el arreglo de verifications como JSON.
  */
 export async function listVerifications(_req: Request, res: Response) 
 {
@@ -67,10 +59,7 @@ export async function listVerifications(_req: Request, res: Response)
 // ============================================================================
 // GET /api/verifications/:id
 // ============================================================================
-
-/** 
- * Devuelve una verification específica por su ID.
- *
+/** Devuelve una verification específica por su ID.
  * - Lee `id` del parámetro de ruta.
  * - Llama a `findVerificationById(id)` en la capa de servicios.
  * - Si no existe, responde 404.
@@ -79,7 +68,7 @@ export async function listVerifications(_req: Request, res: Response)
 export async function getVerification(req: Request<{ id: string }>, res: Response) 
 {
   try {
-    // Extrae el id desde la URL: /api/verifications/:id
+    // Extrae el id de los parámetros de ruta: /api/verifications/:id
     const { id } = req.params;
 
     // Busca la verification en la capa de servicios.
@@ -103,10 +92,7 @@ export async function getVerification(req: Request<{ id: string }>, res: Respons
 // ============================================================================
 // POST /api/verifications
 // ============================================================================
-
-/** 
- * Crea una nueva verification.
- *
+/** Crea una nueva verification.
  * - Lee del body:
  *     - customer_id (FK obligatoria)
  *     - session_id  (FK obligatoria)
@@ -183,19 +169,15 @@ export async function createVerification(req: Request, res: Response)
 // ============================================================================
 // PUT /api/verifications/:id
 // ============================================================================
-
-/** 
- * Actualiza parcialmente una verification existente.
- *
- * - Lee `id` desde la ruta y los posibles campos a actualizar desde el body:
- *     - customer_id, session_id, payment_id, type, status, attempts.
- * - Llama a `updateVerificationService(id, dto)`:
- *     - Si no existe la verification → devuelve null.
- *     - Si se pasa un customer_id / session_id / payment_id no válidos,
- *       el servicio lanza errores con code:
+/** Actualiza parcialmente una verification existente.
+ *    - Lee `id` desde la ruta y los posibles campos a actualizar desde el body:
+ *        - customer_id, session_id, payment_id, type, status, attempts.
+ *    - Llama a `updateVerificationService(id, dto)`:
+ *        - Si no existe la verification → devuelve null.
+ *        - Si se pasa un customer_id / session_id / payment_id no válidos, el servicio lanza errores con code:
  *          'CUSTOMER_NOT_FOUND' | 'SESSION_NOT_FOUND' | 'PAYMENT_NOT_FOUND'.
- * - Si `updateVerificationService` devuelve null → responde 404.
- * - Si se actualiza correctamente → responde 200 con la verification actualizada.
+ *    - Si `updateVerificationService` devuelve null → responde 404.
+ *    - Si se actualiza correctamente → responde 200 con la verification actualizada.
  */
 export async function updateVerification(req: Request<{ id: string }>, res: Response) 
 {
@@ -252,19 +234,17 @@ export async function updateVerification(req: Request<{ id: string }>, res: Resp
 // ============================================================================
 // DELETE /api/verifications/:id
 // ============================================================================
-
-/** 
- * Elimina una verification por su ID.
- *
- * - Lee `id` desde los parámetros de ruta.
- * - Llama a `deleteVerificationService(id)`:
- *     - Devuelve el número de filas eliminadas (0 si no existía).
- * - Si `deleted === 0` → responde 404 (no había verification con ese id).
- * - Si `deleted > 0`  → responde 204 (No Content), indicando borrado correcto.
+/** Elimina una verification por su ID.
+ *    - Lee `id` desde los parámetros de ruta.
+ *    - Llama a `deleteVerificationService(id)`:
+ *        - Devuelve el número de filas eliminadas (0 si no existía).
+ *    - Si `deleted === 0` → responde 404 (no había verification con ese id).
+ *    - Si `deleted > 0`  → responde 204 (No Content), indicando borrado correcto.
  */
 export async function deleteVerification(req: Request<{ id: string }>, res: Response) 
 {
   try {
+    // ID de la verification que se quiere eliminar.
     const { id } = req.params;
 
     // Ejecuta el borrado en la capa de servicios.

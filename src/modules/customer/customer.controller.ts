@@ -1,8 +1,6 @@
 /** Controladores HTTP para la entidad Customer.
- *
- * Este archivo expone las funciones (handlers) que se asocian a las rutas
- * REST de la API. Cada función:
- *
+ *  Este archivo expone las funciones (handlers) que se asocian a las rutas
+ *  REST de la API. Cada función:
  *  1) Lee parámetros de la petición (params, body).
  *  2) Invoca la capa de servicios (customer.service) donde está la lógica
  *     de acceso a datos y reglas de negocio.
@@ -14,7 +12,6 @@
  *       - 404 Not Found → recurso no encontrado.
  *       - 409 Conflict → conflicto de negocio (email duplicado, etc.).
  *       - 500 Internal Server Error → error inesperado.
- *
  * Importante:
  *   - Aquí NO va la lógica de acceso a datos (eso está en los services).
  *   - Aquí NO debería ir lógica de negocio pesada; solo orquestación y manejo de HTTP.
@@ -36,11 +33,10 @@ import {
 // ============================================================================
 // GET /api/customers
 // ============================================================================
-
 /** Lista todos los customers.
- * - No usa parámetros de la petición (por eso se ignora `_req`).
- * - Llama a `findAllCustomers()` en la capa de servicios.
- * - Devuelve el array de customers como JSON.
+ *    - No usa parámetros de la petición (por eso se ignora `_req`).
+ *    - Llama a `findAllCustomers()` en la capa de servicios.
+ *    - Devuelve el array de customers como JSON.
  */
 export async function listCustomers(_req: Request, res: Response) 
 {
@@ -61,16 +57,15 @@ export async function listCustomers(_req: Request, res: Response)
 // ============================================================================
 // GET /api/customers/:id
 // ============================================================================
-
 /** Obtiene un customer específico por su ID.
- * - Lee el parámetro de ruta `id` (UUID normalmente).
- * - Llama a `findCustomerById(id)` en la capa de servicios.
- * - Si no existe, devuelve 404. Si existe, devuelve el objeto como JSON.
+ *    - Lee el parámetro de ruta `id` (UUID normalmente).
+ *    - Llama a `findCustomerById(id)` en la capa de servicios.
+ *    - Si no existe, devuelve 404. Si existe, devuelve el objeto como JSON.
  */
 export async function getCustomer(req: Request<{ id: string }>, res: Response) 
 {
   try {
-    // Extrae el `id` de los parámetros de ruta: /api/customers/:id
+    // Extrae el id de los parámetros de ruta: /api/customers/:id
     const { id } = req.params;
 
     // Consulta al servicio por ese customer.
@@ -92,13 +87,11 @@ export async function getCustomer(req: Request<{ id: string }>, res: Response)
 // ============================================================================
 // POST /api/customers
 // ============================================================================
-
 /** Crea un nuevo customer.
- * - Lee el body con los datos del nuevo registro.
- * - Valida que los campos obligatorios estén presentes.
- * - Llama a `createCustomerService` para aplicar reglas de negocio
- *   y guardar en la BD.
- * - Maneja el caso especial de email duplicado con 409 Conflict.
+ *    - Lee el body con los datos del nuevo registro.
+ *    - Valida que los campos obligatorios estén presentes.
+ *    - Llama a `createCustomerService` para aplicar reglas de negocio y guardar en la BD.
+ *    - Maneja el caso especial de email duplicado con 409 Conflict.
  */
 export async function createCustomer(req: Request, res: Response) 
 {
@@ -147,18 +140,19 @@ export async function createCustomer(req: Request, res: Response)
 // ============================================================================
 // PUT /api/customers/:id
 // ============================================================================
-
 /** Actualiza parcialmente un customer existente.
- * - Lee el `id` de los params y los nuevos valores del body.
- * - Llama a `updateCustomerService(id, dto)` para que la capa de servicios
- *   actualice solo los campos proporcionados.
- * - Si el customer no existe, devuelve 404.
- * - Si el servicio detecta email duplicado, devuelve 409.
+ *    - Lee el `id` de los params y los nuevos valores del body.
+ *    - Llama a `updateCustomerService(id, dto)` para que la capa de servicios actualice solo los campos proporcionados.
+ *    - Si el customer no existe, devuelve 404.
+ *    - Si el servicio detecta email duplicado, devuelve 409.
  */
 export async function updateCustomer(req: Request<{ id: string }>, res: Response) 
 {
   try {
+    // ID del customer que se quiere actualizar.
     const { id } = req.params;
+
+    // Desestructuramos los campos esperados del body.
     const { name, email, phone, address, active } = req.body;
 
     // Enviamos al servicio un objeto con los posibles cambios.
@@ -198,18 +192,17 @@ export async function updateCustomer(req: Request<{ id: string }>, res: Response
 // ============================================================================
 // DELETE /api/customers/:id
 // ============================================================================
-
 /** Elimina un customer por su ID.
- * - Lee el `id` desde los parámetros de ruta.
- * - Llama a `deleteCustomerService(id)` que devuelve cuántas filas se han borrado
- *   o lanza errores de negocio (por ejemplo, tiene pagos activos).
- * - Si no se borró ninguna fila, se responde 404 (no existía).
- * - Si se borra correctamente, responde 204 No Content (sin body).
- * - Si el servicio detecta que tiene pagos activos, responde 409 Conflict.
+ *    - Lee el `id` desde los parámetros de ruta.
+ *    - Llama a `deleteCustomerService(id)` que devuelve cuántas filas se han borrado o lanza errores de negocio (por ejemplo, tiene pagos activos).
+ *    - Si no se borró ninguna fila, se responde 404 (no existía).
+ *    - Si se borra correctamente, responde 204 No Content (sin body).
+ *    - Si el servicio detecta que tiene pagos activos, responde 409 Conflict.
  */
 export async function deleteCustomer(req: Request<{ id: string }>, res: Response) 
 {
   try {
+    // ID del customer que se quiere eliminar.
     const { id } = req.params;
 
     // `deleted` suele ser el número de filas afectadas por el DELETE.
