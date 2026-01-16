@@ -3,6 +3,7 @@ import {
   IsUUID,
   IsBoolean,
   IsOptional,
+  IsNotEmpty,
   MaxLength,
 } from 'class-validator';
 
@@ -25,6 +26,16 @@ export class UpdateProductDto
   @IsString()
   @MaxLength(255)
   description?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(10)
+  min_monthly_rent!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(10)
+  max_monthly_rent!: string;
 
   @IsOptional()
   @IsBoolean()

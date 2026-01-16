@@ -5,8 +5,8 @@
     "paths": {
       "@/*": ["*"]
     },
-    "rootDir": "./src",
-    "outDir": "./dist",
+    "rootDir": "src",
+    "outDir": "dist",
 
     // Node moderno con ESM
     "module": "nodenext",
@@ -14,7 +14,7 @@
     "target": "esnext",
 
     // Tipos de Node
-    "types": ["node"],
+    "types": ["node", "jest"],
 
     // Salida de tipos / mapas (opcional)
     "sourceMap": true,
@@ -38,7 +38,7 @@
     "resolveJsonModule": true,
 
     // Suele evitar conflictos con campos de clase + decorators
-    "useDefineForClassFields": false
+    "useDefineForClassFields": false,
   },
   "include": ["src/**/*", "src/config/data-source.ts"],
   "exclude": ["node_modules", "dist"]

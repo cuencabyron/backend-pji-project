@@ -55,9 +55,9 @@ export async function findPaymentById(id: string)
   // Obtiene el repositorio de la entidad Payment.
   const repo = AppDataSource.getRepository(Payment);
 
-  /* Busca un único registro cuyo payment_id coincida con el id recibido.
-  Además, `relations: { customer: true }` indica a TypeORM que también
-  cargue los datos del Customer relacionado (JOIN en la consulta).*/
+  /* Busca un único registro cuyo session_id coincida con el id recibido.
+  Además, `relations: { session: true }` indica a TypeORM que también
+  cargue los datos del Session relacionado (JOIN en la consulta).*/
   return repo.findOne({
     where: { payment_id: id },
     relations: { customer: true },

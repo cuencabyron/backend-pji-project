@@ -3,7 +3,7 @@ import { Router } from 'express';
 
 //import { validateServiceId } from '../middlewares/id-validators';
 
-import { validateProductId } from '../../middlewares/id-validators2';
+import { validateProductId } from '@/middlewares/id-validators2';
 
 // Importa los controladores (handlers) para cada operación del CRUD
 import { 

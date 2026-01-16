@@ -13,7 +13,7 @@ export class Session
   @PrimaryGeneratedColumn('uuid') session_id!: string;
   @Column({ type: 'varchar', length: 255 }) user_agent!: string;
 
-  @Column({ type: 'varchar', length: 20 }) status!: string;
+  @Column({ length: 20, default: 'active' }) status!: string;
 
   @CreateDateColumn({ type: 'datetime' }) started_at!: Date;
 
