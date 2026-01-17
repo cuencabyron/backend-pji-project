@@ -34,7 +34,7 @@ import { Payment } from '@/modules/payment/payment.entity';
  *    "55 1234-5678"  -> "5512345678"
  *    "+52 (55) 1234-5678" -> "+525512345678"
  */
-function normalizePhone(rawPhone: string): string 
+export function normalizePhone(rawPhone: string): string 
 {
   if (!rawPhone) return rawPhone;
   const trimmed = rawPhone.trim();
