@@ -11,7 +11,7 @@ export class Payment
   // ============================================
   @PrimaryGeneratedColumn('uuid') payment_id!: string;
   
-  @Column({type: 'varchar', length: 20}) amount!: string;
+  @Column({ type: 'decimal', precision: 10, scale: 3 }) amount!: string;
 
   @Column({ type: 'char', length: 3, default: 'MXN' }) currency!: string;
 

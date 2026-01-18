@@ -20,7 +20,7 @@ export class UpdatePaymentDto
 
   @IsOptional()
   @IsString()
-  @MaxLength(20)
+  @MaxLength(10)
   amount?: string;
 
   @IsOptional()

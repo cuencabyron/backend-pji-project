@@ -20,7 +20,7 @@ export class CreatePaymentDto
 
   @IsString()
   @IsNotEmpty({ message: 'amount es obligatorio' })
-  @MaxLength(20, { message: 'amount no debe superar 20 caracteres' })
+  @MaxLength(10, { message: 'amount no debe superar 20 caracteres' })
   amount!: string;
 
   @IsString()
