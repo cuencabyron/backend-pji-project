@@ -33,25 +33,25 @@ describe('CustomerController (HTTP)', () => {
 
   it('GET /api/customers/:id devuelve 200 cuando existe', async () => {
     serviceMock.findCustomerById.mockResolvedValue({
-      customer_id: '583e2f58-e0b6-4fd2-adb1-c6b948fe32ad',
-      name: 'Ana Torres',
-      email: 'jana.torres@hotmail.mx',
-      phone: '5545678901',
-      address: 'Montejo 123, Mérida, Yuc',
+      customer_id: 'ebe310f8-41fe-4b78-bf22-7279bd8e7f7b',
+      name: 'Alejandro Lopez',
+      email: 'ale.lopez@yahoo.mx',
+      phone: '2211530820',
+      address: 'Juan Morales, Cuautla, Mor',
       active: true,
     } as any);
 
-    const res = await request(app).get('/api/customers/583e2f58-e0b6-4fd2-adb1-c6b948fe32ad');
+    const res = await request(app).get('/api/customers/ebe310f8-41fe-4b78-bf22-7279bd8e7f7b');
 
     expect(res.status).toBe(200);
-    expect(res.body.customer_id).toBe('583e2f58-e0b6-4fd2-adb1-c6b948fe32ad');
-    expect(serviceMock.findCustomerById).toHaveBeenCalledWith('583e2f58-e0b6-4fd2-adb1-c6b948fe32ad');
+    expect(res.body.customer_id).toBe('ebe310f8-41fe-4b78-bf22-7279bd8e7f7b');
+    expect(serviceMock.findCustomerById).toHaveBeenCalledWith('ebe310f8-41fe-4b78-bf22-7279bd8e7f7b');
   });
 
   it('GET /api/customers/:id devuelve 404 cuando no existe', async () => {
     serviceMock.findCustomerById.mockResolvedValue(null);
 
-    const res = await request(app).get('/api/customers/cust-no-existe');
+    const res = await request(app).get('/api/customers/583e2f58-e0b6-4fd2-adb1-c6b948fe32ad');
 
     expect(res.status).toBe(404);
     expect(res.body.message).toMatch(/no encontrado/i);
@@ -79,7 +79,7 @@ describe('CustomerController (HTTP)', () => {
   it('DELETE /api/customers/:id devuelve 404 si no existía', async () => {
     serviceMock.deleteCustomerService.mockResolvedValue(0);
 
-    const res = await request(app).delete('/api/customers/cust-no-existe');
+    const res = await request(app).delete('/api/customers/ebe310f8-41fe-4b78-bf22-7279bd8e7f7b');
 
     expect(res.status).toBe(404);
   });
@@ -89,7 +89,7 @@ describe('CustomerController (HTTP)', () => {
     error.code = 'CUSTOMER_HAS_ACTIVE_PAYMENTS';
     serviceMock.deleteCustomerService.mockRejectedValue(error);
 
-    const res = await request(app).delete('/api/customers/583e2f58-e0b6-4fd2-adb1-c6b948fe32ad');
+    const res = await request(app).delete('/api/customers/ebe310f8-41fe-4b78-bf22-7279bd8e7f7b');
 
     expect(res.status).toBe(409);
     expect(res.body.message).toMatch(/pagos activos/i);

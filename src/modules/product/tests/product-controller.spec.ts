@@ -23,38 +23,38 @@ describe('ProductController (HTTP)', () => {
   it('GET /api/products/:id devuelve 404 si no existe', async () => {
     serviceMock.findProductById.mockResolvedValue(null);
 
-    const res = await request(app).get('/api/products/prod-no-existe');
+    const res = await request(app).get('/api/products/4956c3a6-7f88-47b6-99de-870b700f7aab');
 
     expect(res.status).toBe(404);
   });
 
   it('POST /api/products devuelve 201 cuando se crea', async () => {
     const dto = {
-      customer_id: 'cust-1',
-      name: 'Plan Básico',
-      description: 'Descripción del plan',
-      min_monthly_rent: '100.00',
-      max_monthly_rent: '300.00',
+      customer_id: '583e2f58-e0b6-4fd2-adb1-c6b948fe32ad',
+      name: 'Premium',
+      description: 'Incluye todos los beneficios de Esencial',
+      min_monthly_rent: 4950,
+      max_monthly_rent: 9949,
       active: true,
     };
-    const saved = { product_id: 'prod-1', ...dto };
+    const saved = { product_id: '4956c3a6-7f88-47b6-99de-870b700f7aab', ...dto };
 
     serviceMock.createProductService.mockResolvedValue(saved as any);
 
     const res = await request(app).post('/api/products').send(dto);
 
     expect(res.status).toBe(201);
-    expect(res.body.product_id).toBe('prod-1');
+    expect(res.body.product_id).toBe('4956c3a6-7f88-47b6-99de-870b700f7aab');
     expect(serviceMock.createProductService).toHaveBeenCalledWith(dto);
   });
 
   it('POST /api/products devuelve 400 si customer_id no existe', async () => {
     const dto = {
-      customer_id: 'cust-no-existe',
-      name: 'Plan Básico',
-      description: 'Descripción del plan',
-      min_monthly_rent: '100.00',
-      max_monthly_rent: '300.00',
+      customer_id: '583e2f58-e0b6-4fd2-adb1-c6b948fe32ad',
+      name: 'Premium',
+      description: 'Incluye todos los beneficios de Esencial',
+      min_monthly_rent: 4950,
+      max_monthly_rent: 9949,
       active: true,
     };
 

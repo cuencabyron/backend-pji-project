@@ -24,7 +24,7 @@ describe('PaymentController (HTTP)', () => {
   it('GET /api/payments/:id devuelve 404 cuando no existe', async () => {
     serviceMock.findPaymentById.mockResolvedValue(null);
 
-    const res = await request(app).get('/api/payments/pay-no-existe');
+    const res = await request(app).get('/api/payments/0c8722c1-edc2-485f-9f7c-686025c4306f');
 
     expect(res.status).toBe(404);
     expect(res.body.message).toMatch(/no encontrado/i);
@@ -32,12 +32,12 @@ describe('PaymentController (HTTP)', () => {
 
   it('POST /api/payments devuelve 201 cuando se crea', async () => {
     const dto = {
-      customer_id: 'cust-1',
-      amount: 100,
+      customer_id: 'ebe310f8-41fe-4b78-bf22-7279bd8e7f7b',
+      amount: 9950,
       currency: 'MXN',
       method: 'card',
-      status: 'pending',
-      external_ref: 'REF-1',
+      status: 'paid',
+      external_ref: 'PAY-001-TPV',
     };
     const saved = { payment_id: 'pay-1', ...dto };
 
@@ -52,12 +52,12 @@ describe('PaymentController (HTTP)', () => {
 
   it('POST /api/payments devuelve 400 si el customer no existe', async () => {
     const dto = {
-      customer_id: 'cust-no-existe',
-      amount: 100,
+      customer_id: '7c8b3989-2585-4c60-a0uc-8fabd58jae4b',
+      amount: 4950,
       currency: 'MXN',
-      method: 'card',
-      status: 'pending',
-      external_ref: 'REF-1',
+      method: 'oxxo',
+      status: 'paid',
+      external_ref: 'OXXO-234234',
     };
 
     const error: any = new Error('CUSTOMER_NOT_FOUND');
