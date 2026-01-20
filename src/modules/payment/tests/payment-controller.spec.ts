@@ -1,72 +1,186 @@
-import request from 'supertest';
-import app from '@/app';
-import * as paymentService from '@/modules/payment/payment.service';
+// src/modules/payment/__tests__/payment.controller.spec.ts
+import type { Request, Response } from 'express';
+import {
+  listPayments,
+  getPayment,
+  createPayment,
+  updatePayment,
+  deletePayment,
+} from '@/modules/payment/payment.controller';
 
-jest.mock('@/modules/payment/payment.service');
+import {
+  findAllPayments,
+  findPaymentById,
+  createPaymentService,
+  updatePaymentService,
+  deletePaymentService,
+} from '@/modules/payment/payment.service';
 
-const serviceMock = paymentService as jest.Mocked<typeof paymentService>;
+jest.mock('@/modules/payment/payment.service', () => ({
+  findAllPayments: jest.fn(),
+  findPaymentById: jest.fn(),
+  createPaymentService: jest.fn(),
+  updatePaymentService: jest.fn(),
+  deletePaymentService: jest.fn(),
+}));
 
-describe('PaymentController (HTTP)', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+function createMockResponse(): Response {
+  const res: Partial<Response> = {};
+  res.status = jest.fn().mockReturnValue(res);
+  res.json = jest.fn().mockReturnValue(res);
+  res.send = jest.fn().mockReturnValue(res);
+  return res as Response;
+}
+
+describe('PaymentController', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  const mockedFindAll = findAllPayments as jest.Mock;
+  const mockedFindById = findPaymentById as jest.Mock;
+  const mockedCreate = createPaymentService as jest.Mock;
+  const mockedUpdate = updatePaymentService as jest.Mock;
+  const mockedDelete = deletePaymentService as jest.Mock;
+
+  // ============================================================================
+  //                    listPayments (GET /api/payments)
+  // ============================================================================
+  it('listPayments → 200', async () => 
+    {
+    mockedFindAll.mockResolvedValue([{ payment_id: 'p1' }]);
+    const res = createMockResponse();
+
+    await listPayments({} as Request, res);
+
+    expect(res.json).toHaveBeenCalledWith([{ payment_id: 'p1' }]);
   });
 
-  it('GET /api/payments devuelve 200 y lista de payments', async () => {
-    serviceMock.findAllPayments.mockResolvedValue([{} as any]);
+  it('getPayment → 404 si no existe', async () => {
+    mockedFindById.mockResolvedValue(null);
 
-    const res = await request(app).get('/api/payments');
+    const req = { 
+      params: { id: 'no' }, 
+    } as unknown as Request<{ id: string }>;
+    const res = createMockResponse();
 
-    expect(res.status).toBe(200);
-    expect(Array.isArray(res.body)).toBe(true);
-    expect(serviceMock.findAllPayments).toHaveBeenCalledTimes(1);
+    await getPayment(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
   });
 
-  it('GET /api/payments/:id devuelve 404 cuando no existe', async () => {
-    serviceMock.findPaymentById.mockResolvedValue(null);
+  // ============================================================================
+  //                    createPayment (POST /api/payments)
+  // ============================================================================
+  it('createPayment → 400 si faltan campos obligatorios', async () => 
+  {
+    const req = { body: { customer_id: 'c1', amount: 100 } } as Request; // falta method
+    const res = createMockResponse();
 
-    const res = await request(app).get('/api/payments/0c8722c1-edc2-485f-9f7c-686025c4306f');
+    await createPayment(req, res);
 
-    expect(res.status).toBe(404);
-    expect(res.body.message).toMatch(/no encontrado/i);
+    expect(res.status).toHaveBeenCalledWith(400);
   });
 
-  it('POST /api/payments devuelve 201 cuando se crea', async () => {
-    const dto = {
-      customer_id: 'ebe310f8-41fe-4b78-bf22-7279bd8e7f7b',
-      amount: 9950,
-      currency: 'MXN',
-      method: 'card',
-      status: 'paid',
-      external_ref: 'PAY-001-TPV',
-    };
-    const saved = { payment_id: 'pay-1', ...dto };
+  it('createPayment → 201 si se crea', async () => 
+  {
+    const saved = { payment_id: 'p1' };
+    mockedCreate.mockResolvedValue(saved);
 
-    serviceMock.createPaymentService.mockResolvedValue(saved as any);
+    const req = {
+      body: {
+        customer_id: 'c1',
+        amount: 100,
+        currency: 'MXN',
+        method: 'card',
+        status: 'pending',
+        external_ref: 'abc',
+      },
+    } as Request;
+    const res = createMockResponse();
 
-    const res = await request(app).post('/api/payments').send(dto);
+    await createPayment(req, res);
 
-    expect(res.status).toBe(201);
-    expect(res.body.payment_id).toBe('pay-1');
-    expect(serviceMock.createPaymentService).toHaveBeenCalledWith(dto);
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith(saved);
   });
 
-  it('POST /api/payments devuelve 400 si el customer no existe', async () => {
-    const dto = {
-      customer_id: '7c8b3989-2585-4c60-a0uc-8fabd58jae4b',
-      amount: 4950,
-      currency: 'MXN',
-      method: 'oxxo',
-      status: 'paid',
-      external_ref: 'OXXO-234234',
-    };
-
-    const error: any = new Error('CUSTOMER_NOT_FOUND');
+  it('createPayment → 400 si CUSTOMER_NOT_FOUND', async () => {
+    const error: any = new Error('Customer no encontrado');
     error.code = 'CUSTOMER_NOT_FOUND';
-    serviceMock.createPaymentService.mockRejectedValue(error);
+    mockedCreate.mockRejectedValue(error);
 
-    const res = await request(app).post('/api/payments').send(dto);
+    const req = {
+      body: {
+        customer_id: 'no',
+        amount: 100,
+        method: 'card',
+      },
+    } as Request;
+    const res = createMockResponse();
 
-    expect(res.status).toBe(400);
-    expect(res.body.message).toMatch(/no existe en la BD/i);
+    await createPayment(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  // ============================================================================
+  //                   updatePayment (PUT /api/payments/:id)
+  // ============================================================================
+  it('updatePayment → 404 si no existe', async () => {
+    mockedUpdate.mockResolvedValue(null);
+
+    const req = {
+      params: { id: 'no' },
+      body: { amount: 200 },
+    } as unknown as Request<{ id: string }>;
+    const res = createMockResponse();
+
+    await updatePayment(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+  });
+
+  it('updatePayment → 200 si actualiza', async () => {
+    const updated = { payment_id: 'p1', amount: 200 };
+    mockedUpdate.mockResolvedValue(updated);
+
+    const req = {
+      params: { id: 'p1' },
+      body: { amount: 200 },
+    } as unknown as Request<{ id: string }>;
+    const res = createMockResponse();
+
+    await updatePayment(req, res);
+
+    expect(res.json).toHaveBeenCalledWith(updated);
+  });
+
+  // ============================================================================
+  //                  deletePayment (DELETE /api/payments/:id)
+  // ============================================================================
+  it('deletePayment → 204 si elimina', async () => {
+    mockedDelete.mockResolvedValue(1);
+
+    const req = { 
+      params: { id: 'p1' }, 
+    } as unknown as Request<{ id: string }>;
+    const res = createMockResponse();
+
+    await deletePayment(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(204);
+    expect(res.send).toHaveBeenCalled();
+  });
+
+  it('deletePayment → 404 si no existe', async () => {
+    mockedDelete.mockResolvedValue(0);
+
+    const req = { 
+      params: { id: 'no' }, 
+    } as unknown as Request<{ id: string }>;
+    const res = createMockResponse();
+
+    await deletePayment(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
   });
 });

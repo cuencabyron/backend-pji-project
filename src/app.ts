@@ -53,10 +53,6 @@ app.use('/api/verifications', verificationsRoutes);
 // Cualquier ruta definida en sessionRoutes se expondrá como /api/payment/...
 app.use('/api/payments', paymentsRoutes);
 
-// Monta el router de payments bajo el prefijo /api/payments.
-// Cualquier ruta definida en sessionRoutes se expondrá como /api/payment/...
-//app.use('/api/servicepricerange', servicepricerangeRoutes);
-
 // Ruta base de “healthcheck” para comprobar que el servidor está levantado.
 // GET /api/health devolverá { ok: true }
 app.get('/api/health', (_req, res) => res.json({ ok: true }));

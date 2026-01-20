@@ -1,70 +1,194 @@
-import request from 'supertest';
-import app from '@/app';
-import * as productService from '@/modules/product/product.service';
+// src/modules/product/__tests__/product.controller.spec.ts
+import type { Request, Response } from 'express';
+import {
+  listProducts,
+  getProduct,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+} from '@/modules/product/product.controller';
 
-jest.mock('@/modules/product/product.service');
+import {
+  findAllProducts,
+  findProductById,
+  createProductService,
+  updateProductService,
+  deleteProductService,
+} from '@/modules/product/product.service';
 
-const serviceMock = productService as jest.Mocked<typeof productService>;
+jest.mock('@/modules/product/product.service', () => ({
+  findAllProducts: jest.fn(),
+  findProductById: jest.fn(),
+  createProductService: jest.fn(),
+  updateProductService: jest.fn(),
+  deleteProductService: jest.fn(),
+}));
 
-describe('ProductController (HTTP)', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+function createMockResponse(): Response {
+  const res: Partial<Response> = {};
+  res.status = jest.fn().mockReturnValue(res);
+  res.json = jest.fn().mockReturnValue(res);
+  res.send = jest.fn().mockReturnValue(res);
+  return res as Response;
+}
+
+describe('ProductController', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  const mockedFindAll = findAllProducts as jest.Mock;
+  const mockedFindById = findProductById as jest.Mock;
+  const mockedCreate = createProductService as jest.Mock;
+  const mockedUpdate = updateProductService as jest.Mock;
+  const mockedDelete = deleteProductService as jest.Mock;
+
+  // ============================================================================
+  //                    listProducts (GET /api/products)
+  // ============================================================================
+  it('listProducts → 200', async () => 
+  {
+    mockedFindAll.mockResolvedValue([{ product_id: 'pr1' }]);
+    const res = createMockResponse();
+
+    await listProducts({} as Request, res);
+
+    expect(res.json).toHaveBeenCalledWith([{ product_id: 'pr1' }]);
   });
 
-  it('GET /api/products devuelve 200 y lista', async () => {
-    serviceMock.findAllProducts.mockResolvedValue([{} as any]);
+  it('getProduct → 404 si no existe', async () => 
+  {
+    mockedFindById.mockResolvedValue(null);
 
-    const res = await request(app).get('/api/products');
+    const req = { 
+      params: { id: 'no' }, 
+    } as unknown as Request<{ id: string }>;
+    const res = createMockResponse();
 
-    expect(res.status).toBe(200);
-    expect(Array.isArray(res.body)).toBe(true);
+    await getProduct(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
   });
 
-  it('GET /api/products/:id devuelve 404 si no existe', async () => {
-    serviceMock.findProductById.mockResolvedValue(null);
+  // ============================================================================
+  //                    createProduct (POST /api/products)
+  // ============================================================================
+  it('createProduct → 400 si faltan campos obligatorios', async () => 
+  {
+    const req = {
+      body: { customer_id: 'c1', name: 'Servicio X', description: '' }, 
+    } as Request;
+    const res = createMockResponse();
 
-    const res = await request(app).get('/api/products/4956c3a6-7f88-47b6-99de-870b700f7aab');
+    await createProduct(req, res);
 
-    expect(res.status).toBe(404);
+    expect(res.status).toHaveBeenCalledWith(400);
   });
 
-  it('POST /api/products devuelve 201 cuando se crea', async () => {
-    const dto = {
-      customer_id: '583e2f58-e0b6-4fd2-adb1-c6b948fe32ad',
-      name: 'Premium',
-      description: 'Incluye todos los beneficios de Esencial',
-      min_monthly_rent: 4950,
-      max_monthly_rent: 9949,
-      active: true,
-    };
-    const saved = { product_id: '4956c3a6-7f88-47b6-99de-870b700f7aab', ...dto };
+  it('createProduct → 201 si se crea', async () => 
+  {
+    const saved = { product_id: 'pr1' };
+    mockedCreate.mockResolvedValue(saved);
 
-    serviceMock.createProductService.mockResolvedValue(saved as any);
+    const req = {
+      body: {
+        customer_id: 'c1',
+        name: 'Servicio X',
+        description: 'Desc',
+        min_monthly_rent: 100,
+        max_monthly_rent: 200,
+        active: true,
+      },
+    } as Request;
+    const res = createMockResponse();
 
-    const res = await request(app).post('/api/products').send(dto);
+    await createProduct(req, res);
 
-    expect(res.status).toBe(201);
-    expect(res.body.product_id).toBe('4956c3a6-7f88-47b6-99de-870b700f7aab');
-    expect(serviceMock.createProductService).toHaveBeenCalledWith(dto);
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith(saved);
   });
 
-  it('POST /api/products devuelve 400 si customer_id no existe', async () => {
-    const dto = {
-      customer_id: '583e2f58-e0b6-4fd2-adb1-c6b948fe32ad',
-      name: 'Premium',
-      description: 'Incluye todos los beneficios de Esencial',
-      min_monthly_rent: 4950,
-      max_monthly_rent: 9949,
-      active: true,
-    };
-
-    const error: any = new Error('CUSTOMER_NOT_FOUND');
+  it('createProduct → 400 si CUSTOMER_NOT_FOUND', async () => 
+  {
+    const error: any = new Error('Customer no encontrado');
     error.code = 'CUSTOMER_NOT_FOUND';
-    serviceMock.createProductService.mockRejectedValue(error);
+    mockedCreate.mockRejectedValue(error);
 
-    const res = await request(app).post('/api/products').send(dto);
+    const req = {
+      body: {
+        customer_id: 'no',
+        name: 'X',
+        description: 'Y',
+      },
+    } as Request;
+    const res = createMockResponse();
 
-    expect(res.status).toBe(400);
-    expect(res.body.message).toMatch(/customer_id no existe en la BD/i);
+    await createProduct(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  // ============================================================================
+  //                   updateProduct (PUT /api/products/:id)
+  // ============================================================================
+  it('updateProduct → 404 si no existe', async () => 
+  {
+    mockedUpdate.mockResolvedValue(null);
+
+    const req = {
+      params: { id: 'no' },
+      body: { name: 'Nuevo' },
+    } as unknown as Request<{ id: string }>;
+    const res = createMockResponse();
+
+    await updateProduct(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+  });
+
+  it('updateProduct → 200 si actualiza', async () => 
+  {
+    const updated = { product_id: 'pr1', name: 'Nuevo' };
+    mockedUpdate.mockResolvedValue(updated);
+
+    const req = {
+      params: { id: 'pr1' },
+      body: { name: 'Nuevo' },
+    } as unknown as Request<{ id: string }>;
+    const res = createMockResponse();
+
+    await updateProduct(req, res);
+
+    expect(res.json).toHaveBeenCalledWith(updated);
+  });
+
+  // ============================================================================
+  //                  deleteProduct (DELETE /api/products/:id)
+  // ============================================================================
+  it('deleteProduct → 204 si elimina', async () => 
+  {
+    mockedDelete.mockResolvedValue(1);
+
+    const req = { 
+      params: { id: 'pr1' },
+    } as unknown as Request<{ id: string }>;
+    const res = createMockResponse();
+
+    await deleteProduct(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(204);
+    expect(res.send).toHaveBeenCalled();
+  });
+
+  it('deleteProduct → 404 si no existe', async () => 
+  {
+    mockedDelete.mockResolvedValue(0);
+
+    const req = { 
+      params: { id: 'no' }, 
+    } as unknown as Request<{ id: string }>;
+    const res = createMockResponse();
+
+    await deleteProduct(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
   });
 });

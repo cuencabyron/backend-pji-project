@@ -61,7 +61,8 @@ describe('CustomerController', () => {
     expect(res.json).toHaveBeenCalledWith(fakeCustomers);
   });
 
-  it('listCustomers → 500 si el servicio lanza error', async () => {
+  it('listCustomers → 500 si el servicio lanza error', async () => 
+  {
     mockedFindAll.mockRejectedValue(new Error('DB error'));
     const res = createMockResponse();
 
@@ -108,7 +109,8 @@ describe('CustomerController', () => {
   // ============================================================================
   //                    createCustomer (POST /api/customers)
   // ============================================================================
-  it('createCustomer → 400 si faltan campos obligatorios', async () => {
+  it('createCustomer → 400 si faltan campos obligatorios', async () => 
+  {
     const req = {
       body: { name: 'Maria Solis', email: 'marsolis.167@yahoo.com', phone: '7774690016', address:'U.H PIEDRA BLANCA MZA B LOTE 4 DEPTO 302' }, 
     } as Request<{ id: string }>;
@@ -123,7 +125,8 @@ describe('CustomerController', () => {
     expect(mockedCreate).not.toHaveBeenCalled();
   });
 
-  it('createCustomer → 201 si se crea correctamente', async () => {
+  it('createCustomer → 201 si se crea correctamente', async () => 
+  {
     const reqBody = {
       name: 'Maria Solis',
       email: 'marsolis.167@yahoo.com',
@@ -145,7 +148,8 @@ describe('CustomerController', () => {
     expect(res.json).toHaveBeenCalledWith(saved);
   });
 
-  it('createCustomer → 409 si el email ya está en uso (EMAIL_IN_USE)', async () => {
+  it('createCustomer → 409 si el email ya está en uso (EMAIL_IN_USE)', async () => 
+  {
     const error: any = new Error('EMAIL_IN_USE');
     error.code = 'EMAIL_IN_USE';
     mockedCreate.mockRejectedValue(error);
@@ -169,7 +173,8 @@ describe('CustomerController', () => {
   // ============================================================================
   //                   updateCustomer (PUT /api/customers/:id)
   // ============================================================================
-  it('updateCustomer → 200 si actualiza correctamente', async () => {
+  it('updateCustomer → 200 si actualiza correctamente', async () => 
+  {
     const updated = { customer_id: 'uuid-1', name: 'Nuevo Nombre' };
     mockedUpdate.mockResolvedValue(updated);
 
@@ -191,7 +196,8 @@ describe('CustomerController', () => {
     expect(res.json).toHaveBeenCalledWith(updated);
   });
 
-  it('updateCustomer → 404 si el customer no existe', async () => {
+  it('updateCustomer → 404 si el customer no existe', async () => 
+  {
     mockedUpdate.mockResolvedValue(null);
 
     const req = {
@@ -208,7 +214,8 @@ describe('CustomerController', () => {
     });
   });
 
-  it('updateCustomer → 409 si email ya está en uso', async () => {
+  it('updateCustomer → 409 si email ya está en uso', async () => 
+  {
     const error: any = new Error('EMAIL_IN_USE');
     error.code = 'EMAIL_IN_USE';
     mockedUpdate.mockRejectedValue(error);
@@ -246,7 +253,8 @@ describe('CustomerController', () => {
     expect(res.send).toHaveBeenCalled();
   });
 
-  it('deleteCustomer → 404 si no existe', async () => {
+  it('deleteCustomer → 404 si no existe', async () => 
+  {
     mockedDelete.mockResolvedValue(0);
 
     const req = { 
@@ -262,7 +270,8 @@ describe('CustomerController', () => {
     });
   });
 
-  it('deleteCustomer → 409 si tiene pagos activos', async () => {
+  it('deleteCustomer → 409 si tiene pagos activos', async () => 
+  {
     const error: any = new Error('CUSTOMER_HAS_ACTIVE_PAYMENTS');
     error.code = 'CUSTOMER_HAS_ACTIVE_PAYMENTS';
     mockedDelete.mockRejectedValue(error);
