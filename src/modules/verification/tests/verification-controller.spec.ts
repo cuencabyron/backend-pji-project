@@ -45,10 +45,11 @@ describe('VerificationController', () =>
   const mockUpdateVerificationService = updateVerificationService as jest.Mock;
   const mockDeleteVerificationService = deleteVerificationService as jest.Mock;
 
-  // =========================
-  // listVerifications
-  // =========================
-  it('listVerifications → 200 y devuelve verifications', async () => {
+  // =========================================================
+  //         listVerifications (GET /api/verifications)
+  // =========================================================
+  it('listVerifications → 200 y devuelve verifications', async () => 
+  {
     const fakeVerifications = [
       {
         verification_id: 'ver-1',
@@ -72,7 +73,8 @@ describe('VerificationController', () =>
     expect(res.json).toHaveBeenCalledWith(fakeVerifications);
   });
 
-  it('listVerifications → 500 si el servicio falla', async () => {
+  it('listVerifications → 500 si el servicio falla', async () => 
+  {
     mockFindAllVerifications.mockRejectedValue(new Error('DB error'));
 
     const req = {} as Request;
@@ -86,10 +88,11 @@ describe('VerificationController', () =>
     });
   });
 
-  // =========================
-  // getVerification
-  // =========================
-  it('getVerification → 200 si existe', async () => {
+  // ============================================================================
+  //                  getVerification (GET /api/verifications/:id)
+  // ============================================================================
+  it('getVerification → 200 si existe', async () => 
+  {
     const fakeVerification = {
       verification_id: 'ver-1',
       customer_id: 'cust-1',
@@ -113,7 +116,8 @@ describe('VerificationController', () =>
     expect(res.json).toHaveBeenCalledWith(fakeVerification);
   });
 
-  it('getVerification → 404 si no existe', async () => {
+  it('getVerification → 404 si no existe', async () => 
+  {
     mockFindVerificationById.mockResolvedValue(null);
 
     const req = {
@@ -129,7 +133,8 @@ describe('VerificationController', () =>
     });
   });
 
-  it('getVerification → 500 si el servicio falla', async () => {
+  it('getVerification → 500 si el servicio falla', async () => 
+  {
     mockFindVerificationById.mockRejectedValue(new Error('Fallo raro'));
 
     const req = {
@@ -145,10 +150,11 @@ describe('VerificationController', () =>
     });
   });
 
-  // =========================
-  // createVerification
-  // =========================
-  it('createVerification → 201 cuando se crea correctamente', async () => {
+  // ============================================================================
+  //                  createVerification (POST /api/verifications)
+  // ============================================================================
+  it('createVerification → 201 cuando se crea correctamente', async () => 
+  {
     const body = {
       customer_id: 'cust-1',
       session_id: 'sess-1',
@@ -175,7 +181,8 @@ describe('VerificationController', () =>
     expect(res.json).toHaveBeenCalledWith(saved);
   });
 
-  it('createVerification → 400 si faltan campos obligatorios', async () => {
+  it('createVerification → 400 si faltan campos obligatorios', async () => 
+  {
     const req = {
       body: {
         // falta session_id, payment_id, type o attempts
@@ -194,7 +201,8 @@ describe('VerificationController', () =>
     expect(mockCreateVerificationService).not.toHaveBeenCalled();
   });
 
-  it('createVerification → 400 si CUSTOMER_NOT_FOUND', async () => {
+  it('createVerification → 400 si CUSTOMER_NOT_FOUND', async () => 
+  {
     const body = {
       customer_id: 'cust-no',
       session_id: 'sess-1',
@@ -220,7 +228,8 @@ describe('VerificationController', () =>
     });
   });
 
-  it('createVerification → 400 si SESSION_NOT_FOUND', async () => {
+  it('createVerification → 400 si SESSION_NOT_FOUND', async () => 
+  {
     const body = {
       customer_id: 'cust-1',
       session_id: 'sess-no',
@@ -246,7 +255,8 @@ describe('VerificationController', () =>
     });
   });
 
-  it('createVerification → 400 si PAYMENT_NOT_FOUND', async () => {
+  it('createVerification → 400 si PAYMENT_NOT_FOUND', async () => 
+  {
     const body = {
       customer_id: 'cust-1',
       session_id: 'sess-1',
@@ -272,7 +282,8 @@ describe('VerificationController', () =>
     });
   });
 
-  it('createVerification → 500 si el servicio falla', async () => {
+  it('createVerification → 500 si el servicio falla', async () => 
+  {
     mockCreateVerificationService.mockRejectedValue(
       new Error('Error inesperado'),
     );
@@ -296,10 +307,11 @@ describe('VerificationController', () =>
     });
   });
 
-  // =========================
-  // updateVerification
-  // =========================
-  it('updateVerification → 200 cuando se actualiza correctamente', async () => {
+  // =========================================================
+  //       updateVerification (PUT /api/verifications/:id)
+  // =========================================================
+  it('updateVerification → 200 cuando se actualiza correctamente', async () => 
+  {
     const body = {
       customer_id: 'cust-1',
       session_id: 'sess-1',
@@ -328,7 +340,8 @@ describe('VerificationController', () =>
     expect(res.json).toHaveBeenCalledWith(updated);
   });
 
-  it('updateVerification → 404 si no existe', async () => {
+  it('updateVerification → 404 si no existe', async () => 
+  {
     mockUpdateVerificationService.mockResolvedValue(null);
 
     const req = {
@@ -345,7 +358,8 @@ describe('VerificationController', () =>
     });
   });
 
-  it('updateVerification → 400 si CUSTOMER_NOT_FOUND', async () => {
+  it('updateVerification → 400 si CUSTOMER_NOT_FOUND', async () => 
+  {
     const error: any = new Error('customer_id no existe');
     error.code = 'CUSTOMER_NOT_FOUND';
 
@@ -365,7 +379,8 @@ describe('VerificationController', () =>
     });
   });
 
-  it('updateVerification → 400 si SESSION_NOT_FOUND', async () => {
+  it('updateVerification → 400 si SESSION_NOT_FOUND', async () => 
+  {
     const error: any = new Error('session_id no existe');
     error.code = 'SESSION_NOT_FOUND';
 
@@ -385,7 +400,8 @@ describe('VerificationController', () =>
     });
   });
 
-  it('updateVerification → 400 si PAYMENT_NOT_FOUND', async () => {
+  it('updateVerification → 400 si PAYMENT_NOT_FOUND', async () => 
+  {
     const error: any = new Error('payment_id no existe');
     error.code = 'PAYMENT_NOT_FOUND';
 
@@ -405,7 +421,8 @@ describe('VerificationController', () =>
     });
   });
 
-  it('updateVerification → 500 si el servicio falla', async () => {
+  it('updateVerification → 500 si el servicio falla', async () => 
+  {
     mockUpdateVerificationService.mockRejectedValue(
       new Error('Error inesperado'),
     );
@@ -424,10 +441,11 @@ describe('VerificationController', () =>
     });
   });
 
-  // =========================
-  // deleteVerification
-  // =========================
-  it('deleteVerification → 204 si se elimina', async () => {
+  // =========================================================
+  //    deleteVerification (DELETE /api/verifications/:id)
+  // =========================================================
+  it('deleteVerification → 204 si se elimina', async () => 
+  {
     mockDeleteVerificationService.mockResolvedValue(1);
 
     const req = {
@@ -442,7 +460,8 @@ describe('VerificationController', () =>
     expect(res.send).toHaveBeenCalled();
   });
 
-  it('deleteVerification → 404 si no se elimina nada', async () => {
+  it('deleteVerification → 404 si no se elimina nada', async () => 
+  {
     mockDeleteVerificationService.mockResolvedValue(0);
 
     const req = {
@@ -458,7 +477,8 @@ describe('VerificationController', () =>
     });
   });
 
-  it('deleteVerification → 500 si el servicio falla', async () => {
+  it('deleteVerification → 500 si el servicio falla', async () => 
+  {
     mockDeleteVerificationService.mockRejectedValue(
       new Error('Error eliminando'),
     );

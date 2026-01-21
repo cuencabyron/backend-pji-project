@@ -45,10 +45,11 @@ describe('SessionController', () =>
   const mockUpdateSessionService = updateSessionService as jest.Mock;
   const mockDeleteSessionService = deleteSessionService as jest.Mock;
 
-  // =========================
-  // listSessions
-  // =========================
-  it('listSessions → 200 y devuelve sessions', async () => {
+  // =========================================================
+  //           listSessions (GET /api/sessions)
+  // =========================================================
+  it('listSessions → 200 y devuelve sessions', async () => 
+  {
     const fakeSessions = [
       {
         session_id: 'sess-1',
@@ -69,7 +70,8 @@ describe('SessionController', () =>
     expect(res.json).toHaveBeenCalledWith(fakeSessions);
   });
 
-  it('listSessions → 500 si el servicio falla', async () => {
+  it('listSessions → 500 si el servicio falla', async () => 
+  {
     mockFindAllSessions.mockRejectedValue(new Error('DB error'));
 
     const req = {} as Request;
@@ -83,10 +85,11 @@ describe('SessionController', () =>
     });
   });
 
-  // =========================
-  // getSession
-  // =========================
-  it('getSession → 200 si encuentra la session', async () => {
+  // ============================================================================
+  //                    getSession (GET /api/sessions/:id)
+  // ============================================================================
+  it('getSession → 200 si encuentra la session', async () => 
+  {
     const fakeSession = {
       session_id: 'sess-1',
       customer_id: 'cust-1',
@@ -107,7 +110,8 @@ describe('SessionController', () =>
     expect(res.json).toHaveBeenCalledWith(fakeSession);
   });
 
-  it('getSession → 404 si no existe', async () => {
+  it('getSession → 404 si no existe', async () => 
+  {
     mockFindSessionById.mockResolvedValue(null);
 
     const req = {
@@ -123,7 +127,8 @@ describe('SessionController', () =>
     });
   });
 
-  it('getSession → 500 si el servicio falla', async () => {
+  it('getSession → 500 si el servicio falla', async () => 
+  {
     mockFindSessionById.mockRejectedValue(new Error('Fallo raro'));
 
     const req = {
@@ -139,10 +144,11 @@ describe('SessionController', () =>
     });
   });
 
-  // =========================
-  // createSession
-  // =========================
-  it('createSession → 201 cuando se crea correctamente', async () => {
+  // ============================================================================
+  //                    createSession (POST /api/sessions)
+  // ============================================================================
+  it('createSession → 201 cuando se crea correctamente', async () => 
+  {
     const body = {
       customer_id: 'cust-1',
       user_agent: 'PostmanRuntime',
@@ -166,7 +172,8 @@ describe('SessionController', () =>
     expect(res.json).toHaveBeenCalledWith(saved);
   });
 
-  it('createSession → 400 si faltan campos obligatorios', async () => {
+  it('createSession → 400 si faltan campos obligatorios', async () => 
+  {
     const req = {
       body: {
         // falta customer_id o user_agent
@@ -184,7 +191,8 @@ describe('SessionController', () =>
     expect(mockCreateSessionService).not.toHaveBeenCalled();
   });
 
-  it('createSession → 400 si CUSTOMER_NOT_FOUND', async () => {
+  it('createSession → 400 si CUSTOMER_NOT_FOUND', async () => 
+  {
     const body = {
       customer_id: 'cust-no',
       user_agent: 'PostmanRuntime',
@@ -207,7 +215,8 @@ describe('SessionController', () =>
     });
   });
 
-  it('createSession → 500 si el servicio falla', async () => {
+  it('createSession → 500 si el servicio falla', async () => 
+  {
     mockCreateSessionService.mockRejectedValue(new Error('Fallo general'));
 
     const req = {
@@ -226,10 +235,11 @@ describe('SessionController', () =>
     });
   });
 
-  // =========================
-  // updateSession
-  // =========================
-  it('updateSession → 200 si se actualiza correctamente', async () => {
+  // =========================================================
+  //         updateSession (PUT /api/sessions/:id)
+  // =========================================================
+  it('updateSession → 200 si se actualiza correctamente', async () => 
+  {
     const body = {
       customer_id: 'cust-1',
       user_agent: 'Nuevo UA',
@@ -255,7 +265,8 @@ describe('SessionController', () =>
     expect(res.json).toHaveBeenCalledWith(updated);
   });
 
-  it('updateSession → 404 si no existe', async () => {
+  it('updateSession → 404 si no existe', async () => 
+  {
     mockUpdateSessionService.mockResolvedValue(null);
 
     const req = {
@@ -272,7 +283,8 @@ describe('SessionController', () =>
     });
   });
 
-  it('updateSession → 400 si CUSTOMER_NOT_FOUND', async () => {
+  it('updateSession → 400 si CUSTOMER_NOT_FOUND', async () => 
+  {
     const error: any = new Error('Customer no encontrado');
     error.code = 'CUSTOMER_NOT_FOUND';
 
@@ -292,7 +304,8 @@ describe('SessionController', () =>
     });
   });
 
-  it('updateSession → 500 si el servicio falla', async () => {
+  it('updateSession → 500 si el servicio falla', async () => 
+  {
     mockUpdateSessionService.mockRejectedValue(new Error('Fallo update'));
 
     const req = {
@@ -309,10 +322,11 @@ describe('SessionController', () =>
     });
   });
 
-  // =========================
-  // deleteSession
-  // =========================
-  it('deleteSession → 204 si se elimina', async () => {
+  // =========================================================
+  //    deleteSession (DELETE /api/sessions/:id)
+  // =========================================================
+  it('deleteSession → 204 si se elimina', async () => 
+  {
     mockDeleteSessionService.mockResolvedValue(1);
 
     const req = {
@@ -327,7 +341,8 @@ describe('SessionController', () =>
     expect(res.send).toHaveBeenCalled();
   });
 
-  it('deleteSession → 404 si no se elimina nada', async () => {
+  it('deleteSession → 404 si no se elimina nada', async () => 
+  {
     mockDeleteSessionService.mockResolvedValue(0);
 
     const req = {
@@ -343,7 +358,8 @@ describe('SessionController', () =>
     });
   });
 
-  it('deleteSession → 500 si el servicio falla', async () => {
+  it('deleteSession → 500 si el servicio falla', async () => 
+  {
     mockDeleteSessionService.mockRejectedValue(new Error('Error borrando'));
 
     const req = {
