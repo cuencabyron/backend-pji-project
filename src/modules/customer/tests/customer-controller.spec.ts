@@ -1,4 +1,3 @@
-// src/modules/customer/__tests__/customer.controller.spec.ts
 import type { Request, Response } from 'express';
 import {
   listCustomers,
@@ -8,7 +7,6 @@ import {
   deleteCustomer,
 } from '@/modules/customer/customer.controller';
 
-// Mock de la capa de servicio
 import {
   findAllCustomers,
   findCustomerById,
@@ -17,7 +15,8 @@ import {
   deleteCustomerService,
 } from '@/modules/customer/customer.service';
 
-jest.mock('@/modules/customer/customer.service', () => ({
+jest.mock('@/modules/customer/customer.service', () => (
+{
   findAllCustomers: jest.fn(),
   findCustomerById: jest.fn(),
   createCustomerService: jest.fn(),
@@ -34,7 +33,8 @@ function createMockResponse(): Response
   return res as Response;
 }
 
-describe('CustomerController', () => {
+describe('CustomerController', () => 
+{
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -48,20 +48,24 @@ describe('CustomerController', () => {
   // ============================================================================
   //                    listCustomers (GET /api/customers)
   // ============================================================================
-  it('listCustomers → 200 con arreglo de customers', async () => 
+  it('GET listCustomers → 200 con arreglo de customers', async () => 
   {
-    const fakeCustomers = [{ customer_id: 'ebe310f8-41fe-4b78-bf22-7279bd8e7f7b', name: 'Alejandro Lopez' }];
+    const fakeCustomers = [
+      { 
+        customer_id: 'ebe310f8-41fe-4b78-bf22-7279bd8e7f7b', 
+        name: 'Alejandro Lopez' 
+      },
+    ];
+
     mockedFindAll.mockResolvedValue(fakeCustomers);
-
     const res = createMockResponse();
-
     await listCustomers({} as Request, res);
 
     expect(mockedFindAll).toHaveBeenCalledTimes(1);
     expect(res.json).toHaveBeenCalledWith(fakeCustomers);
   });
 
-  it('listCustomers → 500 si el servicio lanza error', async () => 
+  it('GET listCustomers → 500 si el servicio lanza error', async () => 
   {
     mockedFindAll.mockRejectedValue(new Error('DB error'));
     const res = createMockResponse();
@@ -75,9 +79,13 @@ describe('CustomerController', () => {
   // ============================================================================
   //                    getCustomer (GET /api/customers/:id)
   // ============================================================================
-  it('getCustomer → 200 si existe', async () => 
+  it('GET getCustomer → 200 si existe', async () => 
   {
-    const fakeCustomer = { customer_id: 'ebe310f8-41fe-4b78-bf22-7279bd8e7f7b', name: 'Alejandro Lopez' };
+    const fakeCustomer = 
+    { 
+      customer_id: 'ebe310f8-41fe-4b78-bf22-7279bd8e7f7b', 
+      name: 'Alejandro Lopez' 
+    };
     mockedFindById.mockResolvedValue(fakeCustomer);
 
     const req = { 
@@ -91,7 +99,7 @@ describe('CustomerController', () => {
     expect(res.json).toHaveBeenCalledWith(fakeCustomer);
   });
 
-  it('getCustomer → 404 si no existe', async () => 
+  it('GET getCustomer → 404 si no existe', async () => 
   {
     mockedFindById.mockResolvedValue(null);
 
@@ -109,7 +117,7 @@ describe('CustomerController', () => {
   // ============================================================================
   //                    createCustomer (POST /api/customers)
   // ============================================================================
-  it('createCustomer → 400 si faltan campos obligatorios', async () => 
+  it('POST createCustomer → 400 si faltan campos obligatorios', async () => 
   {
     const req = {
       body: { name: 'Maria Solis', email: 'marsolis.167@yahoo.com', phone: '7774690016', address:'U.H PIEDRA BLANCA MZA B LOTE 4 DEPTO 302' }, 
@@ -125,7 +133,7 @@ describe('CustomerController', () => {
     expect(mockedCreate).not.toHaveBeenCalled();
   });
 
-  it('createCustomer → 201 si se crea correctamente', async () => 
+  it('POST createCustomer → 201 si se crea correctamente', async () => 
   {
     const reqBody = {
       name: 'Maria Solis',
@@ -148,7 +156,7 @@ describe('CustomerController', () => {
     expect(res.json).toHaveBeenCalledWith(saved);
   });
 
-  it('createCustomer → 409 si el email ya está en uso (EMAIL_IN_USE)', async () => 
+  it('POST createCustomer → 409 si el email ya está en uso (EMAIL_IN_USE)', async () => 
   {
     const error: any = new Error('EMAIL_IN_USE');
     error.code = 'EMAIL_IN_USE';
@@ -173,7 +181,7 @@ describe('CustomerController', () => {
   // ============================================================================
   //                   updateCustomer (PUT /api/customers/:id)
   // ============================================================================
-  it('updateCustomer → 200 si actualiza correctamente', async () => 
+  it('PUT updateCustomer → 200 si actualiza correctamente', async () => 
   {
     const updated = { customer_id: 'uuid-1', name: 'Nuevo Nombre' };
     mockedUpdate.mockResolvedValue(updated);
@@ -196,7 +204,7 @@ describe('CustomerController', () => {
     expect(res.json).toHaveBeenCalledWith(updated);
   });
 
-  it('updateCustomer → 404 si el customer no existe', async () => 
+  it('PUT updateCustomer → 404 si el customer no existe', async () => 
   {
     mockedUpdate.mockResolvedValue(null);
 
@@ -214,7 +222,7 @@ describe('CustomerController', () => {
     });
   });
 
-  it('updateCustomer → 409 si email ya está en uso', async () => 
+  it('PUT updateCustomer → 409 si email ya está en uso', async () => 
   {
     const error: any = new Error('EMAIL_IN_USE');
     error.code = 'EMAIL_IN_USE';
@@ -237,7 +245,7 @@ describe('CustomerController', () => {
   // ============================================================================
   //                  deleteCustomer (DELETE /api/customers/:id)
   // ============================================================================
-  it('deleteCustomer → 204 si elimina correctamente', async () => 
+  it('DELETE deleteCustomer → 204 si elimina correctamente', async () => 
   {
     mockedDelete.mockResolvedValue(1); // 1 fila afectada
 
@@ -253,7 +261,7 @@ describe('CustomerController', () => {
     expect(res.send).toHaveBeenCalled();
   });
 
-  it('deleteCustomer → 404 si no existe', async () => 
+  it('DELETE deleteCustomer → 404 si no existe', async () => 
   {
     mockedDelete.mockResolvedValue(0);
 
@@ -270,7 +278,7 @@ describe('CustomerController', () => {
     });
   });
 
-  it('deleteCustomer → 409 si tiene pagos activos', async () => 
+  it('DELETE deleteCustomer → 409 si tiene pagos activos', async () => 
   {
     const error: any = new Error('CUSTOMER_HAS_ACTIVE_PAYMENTS');
     error.code = 'CUSTOMER_HAS_ACTIVE_PAYMENTS';
