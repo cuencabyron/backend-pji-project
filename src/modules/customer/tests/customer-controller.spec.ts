@@ -52,8 +52,8 @@ describe('CustomerController', () =>
   {
     const fakeCustomers = [
       { 
-        customer_id: 'ebe310f8-41fe-4b78-bf22-7279bd8e7f7b', 
-        name: 'Alejandro Lopez' 
+        customer_id: 'cust-1', 
+        name: 'Byron Cuenca' 
       },
     ];
 
@@ -67,13 +67,19 @@ describe('CustomerController', () =>
 
   it('GET listCustomers → 500 si el servicio lanza error', async () => 
   {
-    mockedFindAll.mockRejectedValue(new Error('DB error'));
-    const res = createMockResponse();
+    const consoleSpy = jest
+    .spyOn(console, 'error')
+    .mockImplementation(() => {}); // no imprime nada
 
+    mockedFindAll.mockRejectedValue(new Error('DB error'));
+
+    const res = createMockResponse();
     await listCustomers({} as Request, res);
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({message: 'Error listando customers',});
+
+    consoleSpy.mockRestore();
   });
 
   // ============================================================================
@@ -83,19 +89,19 @@ describe('CustomerController', () =>
   {
     const fakeCustomer = 
     { 
-      customer_id: 'ebe310f8-41fe-4b78-bf22-7279bd8e7f7b', 
-      name: 'Alejandro Lopez' 
+      customer_id: 'cust-2', 
+      name: 'Rafael Puente' 
     };
     mockedFindById.mockResolvedValue(fakeCustomer);
 
     const req = { 
-      params: { id: 'ebe310f8-41fe-4b78-bf22-7279bd8e7f7b' }, 
+      params: { id: 'cust-2' }, 
     } as unknown as Request<{ id: string }>;
     const res = createMockResponse();
 
     await getCustomer(req, res);
 
-    expect(mockedFindById).toHaveBeenCalledWith('ebe310f8-41fe-4b78-bf22-7279bd8e7f7b');
+    expect(mockedFindById).toHaveBeenCalledWith('cust-2');
     expect(res.json).toHaveBeenCalledWith(fakeCustomer);
   });
 
@@ -104,7 +110,7 @@ describe('CustomerController', () =>
     mockedFindById.mockResolvedValue(null);
 
     const req = { 
-      params: { id: 'no-existe' }, 
+      params: { id: 'cust-10' }, 
     } as unknown as Request<{ id: string }>;
     const res = createMockResponse();
 
@@ -120,7 +126,13 @@ describe('CustomerController', () =>
   it('POST createCustomer → 400 si faltan campos obligatorios', async () => 
   {
     const req = {
-      body: { name: 'Maria Solis', email: 'marsolis.167@yahoo.com', phone: '7774690016', address:'U.H PIEDRA BLANCA MZA B LOTE 4 DEPTO 302' }, 
+      body: { 
+        name: 'Maria Solis', 
+        email: 'marsolis.167@yahoo.com', 
+        //phone: '7774690016', 
+        address:'Linares, Nuevo León' ,
+        active: true
+      }, 
     } as Request<{ id: string }>;
     const res = createMockResponse();
 
@@ -139,10 +151,10 @@ describe('CustomerController', () =>
       name: 'Maria Solis',
       email: 'marsolis.167@yahoo.com',
       phone: '7774690016',
-      address: 'U.H PIEDRA BLANCA MZA B LOTE 4 DEPTO 302',
+      address: 'Linares, Nuevo León',
       active: true,
     };
-    const saved = { customer_id: 'uuid-1', ...reqBody };
+    const saved = { customer_id: '', ...reqBody };
 
     mockedCreate.mockResolvedValue(saved);
 
@@ -164,10 +176,11 @@ describe('CustomerController', () =>
 
     const req = {
       body: {
-        name: 'Byron',
-        email: 'duplicado@example.com',
-        phone: '5512345678',
-        address: 'CDMX',
+        name: 'Luis Chavez',
+        email: 'marsolis.167@yahoo.com',
+        phone: '7351980026',
+        address: 'Cuautla, Morelos',
+        active: true,
       },
     } as Request;
     const res = createMockResponse();
@@ -183,19 +196,19 @@ describe('CustomerController', () =>
   // ============================================================================
   it('PUT updateCustomer → 200 si actualiza correctamente', async () => 
   {
-    const updated = { customer_id: 'uuid-1', name: 'Nuevo Nombre' };
+    const updated = { customer_id: 'cust-2', name: 'Noah Sebastian' };
     mockedUpdate.mockResolvedValue(updated);
 
     const req = {
-      params: { id: 'uuid-1' },
-      body: { name: 'Nuevo Nombre' },
+      params: { id: 'cust-2' },
+      body: { name: 'Noah Sebastian' },
     } as unknown as Request<{ id: string }>;;
     const res = createMockResponse();
 
     await updateCustomer(req, res);
 
-    expect(mockedUpdate).toHaveBeenCalledWith('uuid-1', {
-      name: 'Nuevo Nombre',
+    expect(mockedUpdate).toHaveBeenCalledWith('cust-2', {
+      name: 'Noah Sebastian',
       email: undefined,
       phone: undefined,
       address: undefined,
@@ -209,8 +222,8 @@ describe('CustomerController', () =>
     mockedUpdate.mockResolvedValue(null);
 
     const req = {
-      params: { id: 'no-existe' },
-      body: { name: 'X' },
+      params: { id: 'cust-10' },
+      body: { name: 'Andres Gómez' },
     } as unknown as Request<{ id: string }>;;
     const res = createMockResponse();
 
@@ -229,8 +242,8 @@ describe('CustomerController', () =>
     mockedUpdate.mockRejectedValue(error);
 
     const req = {
-      params: { id: 'uuid-1' },
-      body: { email: 'duplicado@example.com' },
+      params: { id: 'cust-10' },
+      body: { email: 'marsolis.167@yahoo.com' },
     } as unknown as Request<{ id: string }>;
     const res = createMockResponse();
 
@@ -247,16 +260,16 @@ describe('CustomerController', () =>
   // ============================================================================
   it('DELETE deleteCustomer → 204 si elimina correctamente', async () => 
   {
-    mockedDelete.mockResolvedValue(1); // 1 fila afectada
+    mockedDelete.mockResolvedValue(1); 
 
     const req = { 
-      params: { id: 'uuid-1' },
+      params: { id: 'cust-1' },
      } as unknown as Request<{ id: string }>;
     const res = createMockResponse();
 
     await deleteCustomer(req, res);
 
-    expect(mockedDelete).toHaveBeenCalledWith('uuid-1');
+    expect(mockedDelete).toHaveBeenCalledWith('cust-1');
     expect(res.status).toHaveBeenCalledWith(204);
     expect(res.send).toHaveBeenCalled();
   });
@@ -266,7 +279,7 @@ describe('CustomerController', () =>
     mockedDelete.mockResolvedValue(0);
 
     const req = { 
-      params: { id: 'no-existe' },
+      params: { id: 'cust-10' },
      } as unknown as Request<{ id: string }>;
     const res = createMockResponse();
 
@@ -285,7 +298,7 @@ describe('CustomerController', () =>
     mockedDelete.mockRejectedValue(error);
 
     const req = { 
-      params: { id: 'uuid-1' }, 
+      params: { id: 'cust-1' }, 
     } as unknown as Request<{ id: string }>;
     const res = createMockResponse();
 
