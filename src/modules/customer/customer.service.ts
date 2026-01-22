@@ -210,4 +210,8 @@ export async function deleteCustomerService(id: string): Promise<number>
   return result.affected ?? 0;
 }
 
-//"start": "node -r tsconfig-paths/register dist/server.ts",
+//produccion
+//"start": "node -r tsconfig-paths/register dist/server.js",
+
+// desarrollo
+//"start": "node -r ts-node/register -r tsconfig-paths/register src/server.ts",
