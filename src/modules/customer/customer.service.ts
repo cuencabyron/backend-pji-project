@@ -209,9 +209,3 @@ export async function deleteCustomerService(id: string): Promise<number>
   const result = await customerRepo.delete({ customer_id: id });
   return result.affected ?? 0;
 }
-
-//produccion
-//"start": "node -r tsconfig-paths/register dist/server.js",
-
-// desarrollo
-//"start": "node -r ts-node/register -r tsconfig-paths/register src/server.ts",
