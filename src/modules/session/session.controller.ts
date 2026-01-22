@@ -102,7 +102,7 @@ export async function createSession(req: Request, res: Response)
       return res.status(400).json({
         // Nota: el mensaje menciona ip_address por diseño del dominio,
         // aunque en este handler solo usamos customer_id y user_agent.
-        message: 'customer_id, ip_address y user_agent son requeridos',
+        message: 'customer_id y user_agent son requeridos',
       });
     }
 

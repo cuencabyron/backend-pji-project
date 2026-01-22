@@ -131,7 +131,6 @@ describe('CustomerController', () =>
         email: 'marsolis.167@yahoo.com', 
         //phone: '7774690016', 
         address:'Linares, Nuevo León' ,
-        active: true
       }, 
     } as Request<{ id: string }>;
     const res = createMockResponse();
