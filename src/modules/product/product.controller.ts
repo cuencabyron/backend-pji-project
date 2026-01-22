@@ -44,7 +44,7 @@ export async function createProduct(req: Request, res: Response)
   try {
     const { customer_id, name, description, min_monthly_rent, max_monthly_rent, active } = req.body ?? {};
 
-    if (!customer_id || !name || !description || min_monthly_rent! || max_monthly_rent!) {
+    if (!customer_id || !name || !description) {
       return res.status(400).json({
         message: 'customer_id, name y description son requeridos',
       });
