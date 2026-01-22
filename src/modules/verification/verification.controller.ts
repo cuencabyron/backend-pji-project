@@ -123,12 +123,7 @@ export async function createVerification(req: Request, res: Response)
     } = req.body ?? {};
 
     // Validación rápida de campos requeridos mínimos.
-    if (
-      !customer_id ||
-      !session_id ||
-      !payment_id ||
-      !type ||
-      attempts == null // chequeo explícito contra null/undefined
+    if ( !customer_id || !session_id || !payment_id || !type || attempts == null // chequeo explícito contra null/undefined
     ) {
       return res.status(400).json({
         message:
