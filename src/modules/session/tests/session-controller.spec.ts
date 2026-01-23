@@ -81,7 +81,7 @@ describe('SessionController', () =>
   // =========================================================
   //           listSessions (GET /api/sessions)
   // =========================================================
-  it('listSessions → 200 y devuelve sessions', async () => 
+  it('GET listSessions → 200 y devuelve sessions', async () => 
   {
     // Arreglo simulado de sesiones que devolvería el service.
     const fakeSessions = [
@@ -119,7 +119,7 @@ describe('SessionController', () =>
     expect(res.json).toHaveBeenCalledWith(fakeSessions);
   });
 
-  it('listSessions → 500 si el servicio falla', async () => 
+  it('GET listSessions → 500 si el servicio falla', async () => 
   {
     // Spy a console.error para evitar ruido en la salida del test.
     const consoleSpy = jest
@@ -153,7 +153,7 @@ describe('SessionController', () =>
   // ============================================================================
   //                    getSession (GET /api/sessions/:id)
   // ============================================================================
-  it('getSession → 200 si encuentra la session', async () => 
+  it('GET getSession → 200 si encuentra la session', async () => 
   {
     // Sesión simulada que el service devolvería si existe.
     const fakeSession = {
@@ -184,7 +184,7 @@ describe('SessionController', () =>
     expect(res.json).toHaveBeenCalledWith(fakeSession);
   });
 
-  it('getSession → 404 si no existe', async () => 
+  it('GET getSession → 404 si no existe', async () => 
   {
     // Service devuelve null: no existe la sesión.
     mockFindSessionById.mockResolvedValue(null);
@@ -209,7 +209,7 @@ describe('SessionController', () =>
     });
   });
 
-  it('getSession → 500 si el servicio falla', async () => 
+  it('GET getSession → 500 si el servicio falla', async () => 
   {
     // Spy a console.error para suprimir salida.
     const consoleSpy = jest
@@ -245,7 +245,7 @@ describe('SessionController', () =>
   // ============================================================================
   //                    createSession (POST /api/sessions)
   // ============================================================================
-  it('createSession → 201 cuando se crea correctamente', async () => 
+  it('POST createSession → 201 cuando se crea correctamente', async () => 
   {
     // Body válido para crear sesión.
     const body = {
@@ -282,7 +282,7 @@ describe('SessionController', () =>
     expect(res.json).toHaveBeenCalledWith(saved);
   });
 
-  it('createSession → 400 si faltan campos obligatorios', async () => 
+  it('POST createSession → 400 si faltan campos obligatorios', async () => 
   {
     // Request con body incompleto: falta user_agent (comentado).
     const req = {
@@ -312,7 +312,7 @@ describe('SessionController', () =>
     expect(mockCreateSessionService).not.toHaveBeenCalled();
   });
 
-  it('createSession → 400 si CUSTOMER_NOT_FOUND', async () => 
+  it('POST createSession → 400 si CUSTOMER_NOT_FOUND', async () => 
   {
     // Body con customer_id inexistente.
     const body = {
@@ -346,7 +346,7 @@ describe('SessionController', () =>
     });
   });
 
-  it('createSession → 500 si el servicio falla', async () => 
+  it('POST createSession → 500 si el servicio falla', async () => 
   {
     // Spy a console.error para suprimir salida.
     const consoleSpy = jest
@@ -385,7 +385,7 @@ describe('SessionController', () =>
   // =========================================================
   //         updateSession (PUT /api/sessions/:id)
   // =========================================================
-  it('updateSession → 200 si se actualiza correctamente', async () => 
+  it('PUT updateSession → 200 si se actualiza correctamente', async () => 
   {
     // Body válido de actualización.
     const body = {
@@ -422,7 +422,7 @@ describe('SessionController', () =>
     expect(res.json).toHaveBeenCalledWith(updated);
   });
 
-  it('updateSession → 404 si no existe', async () => 
+  it('PUT updateSession → 404 si no existe', async () => 
   {
     // Service devuelve null: no existe la sesión a actualizar.
     mockUpdateSessionService.mockResolvedValue(null);
@@ -448,7 +448,7 @@ describe('SessionController', () =>
     });
   });
 
-  it('updateSession → 400 si CUSTOMER_NOT_FOUND', async () => 
+  it('PUT updateSession → 400 si CUSTOMER_NOT_FOUND', async () => 
   {
     // Error tipificado: customer_id enviado no existe.
     const error: any = new Error('Customer no encontrado');
@@ -478,7 +478,7 @@ describe('SessionController', () =>
     });
   });
 
-  it('updateSession → 500 si el servicio falla', async () => 
+  it('PUT updateSession → 500 si el servicio falla', async () => 
   {
     // Spy para suprimir logs.
     const consoleSpy = jest
@@ -515,7 +515,7 @@ describe('SessionController', () =>
   // =========================================================
   //    deleteSession (DELETE /api/sessions/:id)
   // =========================================================
-  it('deleteSession → 204 si se elimina', async () => 
+  it('DELETE deleteSession → 204 si se elimina', async () => 
   {
     // Service devuelve 1 para indicar que se eliminó una fila (éxito).
     mockDeleteSessionService.mockResolvedValue(1);
@@ -541,7 +541,7 @@ describe('SessionController', () =>
     expect(res.send).toHaveBeenCalled();
   });
 
-  it('deleteSession → 404 si no se elimina nada', async () => 
+  it('DELETE deleteSession → 404 si no se elimina nada', async () => 
   {
     // Service devuelve 0 para indicar que no se eliminó nada (no existía).
     mockDeleteSessionService.mockResolvedValue(0);
@@ -566,7 +566,7 @@ describe('SessionController', () =>
     });
   });
 
-  it('deleteSession → 500 si el servicio falla', async () => 
+  it('DELETE deleteSession → 500 si el servicio falla', async () => 
   {
     // Spy para suprimir logs.
     const consoleSpy = jest

@@ -82,7 +82,7 @@ describe('VerificationController', () =>
   // =========================================================
   //         listVerifications (GET /api/verifications)
   // =========================================================
-  it('listVerifications → 200 y devuelve verifications', async () => 
+  it('GET listVerifications → 200 y devuelve verifications', async () => 
   {
     // Arreglo simulado de verificaciones.
     const fakeVerifications = [
@@ -129,7 +129,7 @@ describe('VerificationController', () =>
     expect(res.json).toHaveBeenCalledWith(fakeVerifications);
   });
 
-  it('listVerifications → 500 si el servicio falla', async () => 
+  it('GET listVerifications → 500 si el servicio falla', async () => 
   {
     // Spy a console.error para suprimir logs en el output del test.
     const consoleSpy = jest
@@ -163,7 +163,7 @@ describe('VerificationController', () =>
   // ============================================================================
   //                  getVerification (GET /api/verifications/:id)
   // ============================================================================
-  it('getVerification → 200 si existe', async () => 
+  it('GET getVerification → 200 si existe', async () => 
   {
     // Verificación simulada para el caso "encontrada".
     const fakeVerification = {
@@ -197,7 +197,7 @@ describe('VerificationController', () =>
     expect(res.json).toHaveBeenCalledWith(fakeVerification);
   });
 
-  it('getVerification → 404 si no existe', async () => 
+  it('GET getVerification → 404 si no existe', async () => 
   {
     // Service devuelve null: no existe.
     mockFindVerificationById.mockResolvedValue(null);
@@ -222,7 +222,7 @@ describe('VerificationController', () =>
     });
   });
 
-  it('getVerification → 500 si el servicio falla', async () => 
+  it('GET getVerification → 500 si el servicio falla', async () => 
   {
     // Spy a console.error para suprimir salida.
     const consoleSpy = jest
@@ -255,10 +255,7 @@ describe('VerificationController', () =>
     consoleSpy.mockRestore();
   });
 
-  // ============================================================================
-  //                  createVerification (POST /api/verifications)
-  // ============================================================================
-  it('createVerification → 201 cuando se crea correctamente', async () => 
+  it('GET createVerification → 201 cuando se crea correctamente', async () => 
   {
     // Body válido para crear verificación.
     const body = {
@@ -298,7 +295,7 @@ describe('VerificationController', () =>
     expect(res.json).toHaveBeenCalledWith(saved);
   });
 
-  it('createVerification → 400 si faltan campos obligatorios', async () => 
+  it('GET createVerification → 400 si faltan campos obligatorios', async () => 
   {
     // Body incompleto: falta payment_id (comentado).
     const req = {
@@ -333,7 +330,11 @@ describe('VerificationController', () =>
     expect(mockCreateVerificationService).not.toHaveBeenCalled();
   });
 
-  it('createVerification → 400 si CUSTOMER_NOT_FOUND', async () => 
+
+  // ============================================================================
+  //                  createVerification (POST /api/verifications)
+  // ============================================================================
+  it('POST createVerification → 400 si CUSTOMER_NOT_FOUND', async () => 
   {
     // Body con customer_id inexistente.
     const body = {
@@ -370,7 +371,7 @@ describe('VerificationController', () =>
     });
   });
 
-  it('createVerification → 400 si SESSION_NOT_FOUND', async () => 
+  it('POST createVerification → 400 si SESSION_NOT_FOUND', async () => 
   {
     // Body con session_id inexistente.
     const body = {
@@ -407,7 +408,7 @@ describe('VerificationController', () =>
     });
   });
 
-  it('createVerification → 400 si PAYMENT_NOT_FOUND', async () => 
+  it('POST createVerification → 400 si PAYMENT_NOT_FOUND', async () => 
   {
     // Body con payment_id inexistente.
     const body = {
@@ -444,7 +445,7 @@ describe('VerificationController', () =>
     });
   });
 
-  it('createVerification → 500 si el servicio falla', async () => 
+  it('POST createVerification → 500 si el servicio falla', async () => 
   {
     // Spy para suprimir logs.
     const consoleSpy = jest
@@ -488,7 +489,7 @@ describe('VerificationController', () =>
   // =========================================================
   //       updateVerification (PUT /api/verifications/:id)
   // =========================================================
-  it('updateVerification → 200 cuando se actualiza correctamente', async () => 
+  it('PUT updateVerification → 200 cuando se actualiza correctamente', async () => 
   {
     // Body válido para actualización.
     const body = {
@@ -528,7 +529,7 @@ describe('VerificationController', () =>
     expect(res.json).toHaveBeenCalledWith(updated);
   });
 
-  it('updateVerification → 404 si no existe', async () => 
+  it('PUT updateVerification → 404 si no existe', async () => 
   {
     // Service devuelve null: no existe la verificación.
     mockUpdateVerificationService.mockResolvedValue(null);
@@ -554,7 +555,7 @@ describe('VerificationController', () =>
     });
   });
 
-  it('updateVerification → 400 si CUSTOMER_NOT_FOUND', async () => 
+  it('PUT updateVerification → 400 si CUSTOMER_NOT_FOUND', async () => 
   {
     // Error tipificado: customer_id no existe.
     const error: any = new Error('customer_id no existe');
@@ -584,7 +585,7 @@ describe('VerificationController', () =>
     });
   });
 
-  it('updateVerification → 400 si SESSION_NOT_FOUND', async () => 
+  it('PUT updateVerification → 400 si SESSION_NOT_FOUND', async () => 
   {
     // Error tipificado: session_id no existe.
     const error: any = new Error('session_id no existe');
@@ -614,7 +615,7 @@ describe('VerificationController', () =>
     });
   });
 
-  it('updateVerification → 400 si PAYMENT_NOT_FOUND', async () => 
+  it('PUT updateVerification → 400 si PAYMENT_NOT_FOUND', async () => 
   {
     // Error tipificado: payment_id no existe.
     const error: any = new Error('payment_id no existe');
@@ -644,7 +645,7 @@ describe('VerificationController', () =>
     });
   });
 
-  it('updateVerification → 500 si el servicio falla', async () => 
+  it('PUT updateVerification → 500 si el servicio falla', async () => 
   {
     // Spy para suprimir logs.
     const consoleSpy = jest
@@ -683,7 +684,7 @@ describe('VerificationController', () =>
   // =========================================================
   //    deleteVerification (DELETE /api/verifications/:id)
   // =========================================================
-  it('deleteVerification → 204 si se elimina', async () => 
+  it('DELETE deleteVerification → 204 si se elimina', async () => 
   {
     // Service devuelve 1: se eliminó una fila.
     mockDeleteVerificationService.mockResolvedValue(1);
@@ -709,7 +710,7 @@ describe('VerificationController', () =>
     expect(res.send).toHaveBeenCalled();
   });
 
-  it('deleteVerification → 404 si no se elimina nada', async () => 
+  it('DELETE deleteVerification → 404 si no se elimina nada', async () => 
   {
     // Service devuelve 0: no existía la verificación.
     mockDeleteVerificationService.mockResolvedValue(0);
@@ -734,7 +735,7 @@ describe('VerificationController', () =>
     });
   });
 
-  it('deleteVerification → 500 si el servicio falla', async () => 
+  it('DELETE deleteVerification → 500 si el servicio falla', async () => 
   {
     // Spy para suprimir logs.
     const consoleSpy = jest
