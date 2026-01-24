@@ -15,7 +15,7 @@ import {
   getPayment,        // GET /:id -> obtener un payment por id
   createPayment,     // POST / -> crear un payment
   updatePayment,     // PUT /:id -> actualizar un payment por id
-  //deletePayment      // DELETE /:id -> eliminar un payment por id
+  deletePayment      // DELETE /:id -> eliminar un payment por id
 } from './payment.controller';
 
 // Crea una instancia de router independiente
@@ -45,13 +45,13 @@ router.put(
   updatePayment
 );    
 
-/* Elimina un payment por ID (valida :id)
+// Elimina un payment por ID (valida :id)
 router.delete(
   '/:id',
   uuidIdParamValidator('payment'),
   handleValidationErrors,
   deletePayment
-);*/
+);
 
 // Exporta el router para montarlo en app.ts (por ejemplo: app.use('/api/payments', router))
 export default router;
