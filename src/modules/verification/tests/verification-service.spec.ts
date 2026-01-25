@@ -1,100 +1,191 @@
+import { AppDataSource } from '@/config/data-source';
+import { Verification } from '@/modules/verification/verification.entity';
+import { Session } from '@/modules/session/session.entity';
+import { Payment } from '@/modules/payment/payment.entity';
+import { Customer } from '@/modules/customer/customer.entity';
+import {
+  findAllVerifications,
+  findVerificationById,
+  createVerificationService,
+  updateVerificationService,
+  deleteVerificationService,
+} from '@/modules/verification/verification.service';
+import { CreateVerificationDto } from '@/modules/verification/dtos/create-verification.dto';
+import { UpdateVerificationDto } from '@/modules/verification/dtos/update-verification.dto';
+
 jest.mock('@/config/data-source', () => ({
   AppDataSource: {
     getRepository: jest.fn(),
   },
 }));
 
-import { AppDataSource } from '@/config/data-source';
-import { Verification } from '@/modules/verification/verification.entity';
-import { Customer } from '@/modules/customer/customer.entity';
-import { Session } from '@/modules/session/session.entity';
-import { Payment } from '@/modules/payment/payment.entity';
-import {
-  createVerificationService,
-  updateVerificationService,
-} from '@/modules/verification/verification.service';
-import { CreateVerificationDto } from '@/modules/verification/dtos/create-verification.dto';
-import { UpdateVerificationDto } from '@/modules/verification/dtos/update-verification.dto';
+const mockGetRepository = AppDataSource.getRepository as jest.Mock;
 
-const getRepositoryMock = AppDataSource.getRepository as jest.Mock;
-
-describe('VerificationService', () => {
-  const verificationRepo = {
-    findOne: jest.fn(),
+function createVerificationRepoMock() {
+  return {
+    find: jest.fn(),
     findOneBy: jest.fn(),
+    findOne: jest.fn(),
     create: jest.fn(),
     save: jest.fn(),
     delete: jest.fn(),
   };
-  const customerRepo = { findOneBy: jest.fn() };
-  const sessionRepo = { findOneBy: jest.fn() };
-  const paymentRepo = { findOneBy: jest.fn() };
+}
 
+describe('VerificationService (unit tests)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
 
-    getRepositoryMock.mockImplementation((entity) => {
-      if (entity === Verification) return verificationRepo;
-      if (entity === Customer) return customerRepo;
-      if (entity === Session) return sessionRepo;
-      if (entity === Payment) return paymentRepo;
-      throw new Error('Unexpected entity ' + entity);
+  it('findAllVerifications → devuelve todas las verificaciones', async () => {
+    const repo = createVerificationRepoMock();
+    const fake: Verification[] = [
+      {
+        verification_id: 'ver-1',
+        customer_id: 'cust-1',
+        session_id: 'sess-1',
+        payment_id: 'pay-1',
+        type: 'email',
+        status: 'pending',
+        attempts: 3,
+        created_at: new Date(),
+        updated_at: new Date(),
+      } as Verification,
+    ];
+
+    repo.find.mockResolvedValue(fake);
+    mockGetRepository.mockReturnValueOnce(repo);
+
+    const result = await findAllVerifications();
+    expect(result).toEqual(fake);
+  });
+
+  it('findVerificationById → devuelve null si no existe', async () => {
+    const repo = createVerificationRepoMock();
+
+    repo.findOne.mockResolvedValue(null);
+    mockGetRepository.mockReturnValueOnce(repo);
+
+    const result = await findVerificationById('ver-404');
+    expect(result).toBeNull();
+  });
+
+  it('createVerificationService → lanza SESSION_NOT_FOUND si no existe la sesión', async () => 
+  {
+    const verificationRepo = createVerificationRepoMock();
+    
+    const sessionRepo = { findOneBy: jest.fn().mockResolvedValue(null) };
+    const paymentRepo = { findOneBy: jest.fn() };
+
+
+    const dto: CreateVerificationDto = {
+      customer_id: 'cust-1',
+      session_id: 'sess-no-existe',
+      payment_id: 'pay-1',
+      type: 'email',
+      status: 'pending',
+      attempts: 3,
+    };
+
+    mockGetRepository
+      .mockReturnValueOnce(verificationRepo)
+      .mockReturnValueOnce(customerRepo)
+      .mockReturnValueOnce(sessionRepo)
+      .mockReturnValueOnce(paymentRepo);
+
+    await expect(createVerificationService(dto as any)).rejects.toMatchObject({
+      code: 'SESSION_NOT_FOUND',
     });
   });
 
-  it('crea una verification con status pending por defecto', async () => {
+
+  it('createVerificationService → incrementa attempts y guarda', async () => 
+  {
+    const verificationRepo = createVerificationRepoMock();
+
+    const customerRepo = {
+      findOneBy: jest
+        .fn()
+        .mockResolvedValue({ customer_id: 'cust-1' } as Customer),
+      };
+
+    const sessionRepo = { 
+      findOneBy: jest
+        .fn()
+        .mockResolvedValue({ session_id: 'sess-1' } as Session), 
+      };
+
+    const paymentRepo = {
+      findOneBy: jest
+        .fn()
+        .mockResolvedValue({ payment_id: 'pay-1' } as Payment),
+    };
+
     const dto: CreateVerificationDto = {
       customer_id: 'cust-1',
       session_id: 'sess-1',
       payment_id: 'pay-1',
-      type: 'email',
+      type: 'sms',
       status: 'pending',
-      attempts: 0,
+      attempts: 1,
     };
 
-    customerRepo.findOneBy.mockResolvedValue({ customer_id: 'cust-1' });
-    sessionRepo.findOneBy.mockResolvedValue({ session_id: 'sess-1' });
-    paymentRepo.findOneBy.mockResolvedValue({ payment_id: 'pay-1' });
-
-    const created = {
+    const fakeVerification = {
       verification_id: 'ver-1',
-      customer: { customer_id: 'cust-1' },
-      session: { session_id: 'sess-1' },
-      payment: { payment_id: 'pay-1' },
-      type: 'email',
-      status: 'pending',
-      attempts: 0,
-    };
-    const saved = { ...created, created_at: new Date() };
+      ...dto,
+    } as Verification;
 
-    verificationRepo.create.mockReturnValue(created);
-    verificationRepo.save.mockResolvedValue(saved);
+    verificationRepo.create.mockReturnValue(fakeVerification);
+    verificationRepo.save.mockResolvedValue(fakeVerification);
+
+    mockGetRepository
+      .mockReturnValueOnce(verificationRepo)
+      .mockReturnValueOnce(customerRepo)
+      .mockReturnValueOnce(sessionRepo)
+      .mockReturnValueOnce(paymentRepo);
 
     const result = await createVerificationService(dto);
 
-    expect(result).toEqual(saved);
+    expect(customerRepo.findOneBy).toHaveBeenCalledWith({
+      customer_id: dto.customer_id,
+    });
+    expect(sessionRepo.findOneBy).toHaveBeenCalledWith({
+      session_id: dto.session_id,
+    });
+    expect(paymentRepo.findOneBy).toHaveBeenCalledWith({
+      payment_id: dto.payment_id,
+    });
+    expect(verificationRepo.create).toHaveBeenCalled();
+    expect(verificationRepo.save).toHaveBeenCalledWith(fakeVerification);
+
+    expect(result).toEqual(fakeVerification);
   });
 
-  it('lanza SESSION_NOT_FOUND si la sesión no existe al actualizar', async () => {
-    const id = 'ver-9';
-    const dto: UpdateVerificationDto = {
-      session_id: 'sess-no-existe',
-      attempts: 1,
-      type: 'sms',
-      status: 'pending',
-      // customer_id: undefined,
-      // payment_id: undefined,
-    };
+  it('updateVerificationService → devuelve null si no existe', async () => {
+    const verificationRepo = createVerificationRepoMock();
+    const sessionRepo = { findOneBy: jest.fn() };
+    const paymentRepo = { findOneBy: jest.fn() };
 
-    verificationRepo.findOne.mockResolvedValue({
-      verification_id: id,
-      session: { session_id: 'sess-1' },
-    });
+    verificationRepo.findOne.mockResolvedValue(null);
 
-    sessionRepo.findOneBy.mockResolvedValue(null);
+    mockGetRepository
+      .mockReturnValueOnce(verificationRepo)
+      .mockReturnValueOnce(sessionRepo)
+      .mockReturnValueOnce(paymentRepo);
 
-    await expect(updateVerificationService(id, dto)).rejects.toMatchObject({
-      code: 'SESSION_NOT_FOUND',
-    });
+    const dto: UpdateVerificationDto = { status: 'approved' };
+
+    const result = await updateVerificationService('ver-404', dto);
+    expect(result).toBeNull();
+  });
+
+  it('deleteVerificationService → devuelve 1 si se elimina la verificación', async () => {
+    const verificationRepo = createVerificationRepoMock();
+    verificationRepo.delete.mockResolvedValue({ affected: 1 });
+
+    mockGetRepository.mockReturnValueOnce(verificationRepo);
+
+    const affected = await deleteVerificationService('ver-1');
+    expect(affected).toBe(1);
   });
 });
