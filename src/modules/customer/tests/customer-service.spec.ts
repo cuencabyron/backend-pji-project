@@ -131,9 +131,7 @@ describe('CustomerService (unit tests)', () => {
     const result = await findCustomerById('abc');
 
     // Verifica que se buscó por el id correcto.
-    expect(fakeCustomerRepo.findOneBy).toHaveBeenCalledWith({
-      customer_id: 'abc',
-    });
+    expect(fakeCustomerRepo.findOneBy).toHaveBeenCalledWith({ customer_id: 'abc' });
 
     // Verifica el valor retornado.
     expect(result).toEqual(fakeCustomer);
@@ -339,6 +337,10 @@ describe('CustomerService (unit tests)', () => {
 
     // Ejecuta el service.
     const result = await updateCustomerService('c1', dto as any);
+
+    // Validamos que el resultado del service sea exactamente el objeto esperado.
+    // También evita el warning de SonarQube (S1854) porque `saved` deja de ser una variable sin uso.
+    expect(result).toEqual(saved);
 
     // Verifica que, si se intenta cambiar email, se comprueba que no exista duplicado.
     expect(fakeCustomerRepo.findOne).toHaveBeenCalledWith({

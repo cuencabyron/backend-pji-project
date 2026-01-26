@@ -30,7 +30,7 @@ export class UpdateProductDto
   @IsString()
   @IsNotEmpty()
   @MaxLength(10)
-  min_monthly_rent!: string;
+  min_monthly_ren!: string;
 
   @IsString()
   @IsNotEmpty()
