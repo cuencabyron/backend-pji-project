@@ -161,7 +161,7 @@ describe('ProductService (unit tests)', () => {
     repo.save.mockImplementation(async (entity: Product) => entity);
     mockGetRepository.mockReturnValueOnce(repo);
 
-    const dto: UpdateProductDto = { name: 'Nuevo nombre', min_monthly_rent: 3500, max_monthly_rent: 9949 };
+    const dto: UpdateProductDto = { name: 'Nuevo nombre', min_monthly_rent: 3500, max_monthly_rent: 9949 } as any;
 
     const result = await updateProductService('prod-1', dto);
 
