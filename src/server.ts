@@ -30,13 +30,14 @@ import { AppDataSource } from '@/config/data-source';
     - Si existe la variable de entorno PORT, la usa.
     - En caso contrario, usa 4000 por defecto.
  El operador `+` convierte el valor (string) a número.*/
-const PORT = +(process.env.PORT ?? 4000);
+const PORT = Number(process.env.PORT ?? 4000);
 
 // ============================================================================
 // Función de arranque del servidor
 // ============================================================================
 
-function start() {
+async function start() 
+{
   try {
     // Inicializa el DataSource de TypeORM.
     // Esto establece la conexión con la base de datos y prepara las entidades.
