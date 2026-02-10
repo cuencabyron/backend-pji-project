@@ -107,19 +107,20 @@ export async function createPayment(req: Request, res: Response)
 {
   try {
     // Extrae los campos del body. `?? {}` evita errores si el body viene undefined.
-    const { customer_id, amount, currency, method, status, external_ref } = req.body ?? {};
+    const { customer_id, product_id, amount, currency, method, status, external_ref } = req.body ?? {};
 
     // Validación rápida de campos obligatorios mínimos.
-    if (!customer_id || amount == null || !method) 
+    if (!customer_id || !product_id || amount == null || !method) 
     {
       return res.status(400).json({
-        message: 'customer_id, amount y method son requeridos',
+        message: 'Datos incompletos',
       });
     }
 
     // Delegamos la lógica de creación a la capa de servicios.
     const saved = await createPaymentService({
       customer_id,
+      product_id,
       amount,
       currency,
       method,
@@ -164,11 +165,12 @@ export async function updatePayment(req: Request<{ id: string }>, res: Response)
     const { id } = req.params;
 
     // Datos que se desean actualizar.
-    const { customer_id, amount, currency, method, status, external_ref } = req.body ?? {};
+    const { customer_id, product_id, amount, currency, method, status, external_ref } = req.body ?? {};
 
     // Llamada a la capa de servicios para aplicar la actualización.
     const updated = await updatePaymentService(id, {
       customer_id,
+      product_id,
       amount,
       currency,
       method,

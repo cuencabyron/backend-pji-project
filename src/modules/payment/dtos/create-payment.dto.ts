@@ -18,6 +18,10 @@ export class CreatePaymentDto
   @IsNotEmpty({ message: 'customer_id es obligatorio' })
   customer_id!: string;
 
+  @IsUUID('4', { message: 'product_id debe ser un UUID válido' })
+  @IsNotEmpty({ message: 'product_id es obligatorio' })
+  product_id!: string;
+
   @IsString()
   @IsNotEmpty({ message: 'amount es obligatorio' })
   @MaxLength(10, { message: 'amount no debe superar 20 caracteres' })

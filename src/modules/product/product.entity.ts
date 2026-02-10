@@ -31,11 +31,8 @@ export class Product
   // ============================================
   // RELACIONES (LADO N:1)
   // ============================================
-  @ManyToOne(() => Customer, c => c.products)
-  @JoinColumn({ name: 'customer_id' }) customer!: Customer;
 
   // ============================================
   // RELACIONES (LADO 1:N)
   // ============================================
-  //@OneToMany(() => ServicePriceRange, r => r.service) priceRanges!: ServicePriceRange[];
 }

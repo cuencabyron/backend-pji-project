@@ -19,6 +19,10 @@ export class UpdatePaymentDto
   customer_id?: string;
 
   @IsOptional()
+  @IsUUID('4')
+  product_id?: string;
+
+  @IsOptional()
   @IsString()
   @MaxLength(10)
   amount?: string;

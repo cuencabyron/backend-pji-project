@@ -2,7 +2,6 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { Session } from '@/modules/session/session.entity';
 import { Payment } from '@/modules/payment/payment.entity';
 import { Verification } from '@/modules/verification/verification.entity';
-import { Product } from '@/modules/product/product.entity';
 
 @Entity({ name: 'customer' })
 export class Customer
@@ -29,7 +28,6 @@ export class Customer
   // ============================================
   // RELACIONES (LADO 1:N)
   // ============================================
-  @OneToMany(() => Product, pr => pr.customer) products!: Product[];
   @OneToMany(() => Session, s => s.customer) sessions!: Session[];
   @OneToMany(() => Payment, p => p.customer) payments!: Payment[];
   @OneToMany(() => Verification, v => v.customer) verifications!: Verification[];

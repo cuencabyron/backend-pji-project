@@ -72,20 +72,19 @@ export async function createProduct(req: Request, res: Response)
   try {
     // Desestructura los campos esperados del body.
     // "req.body ?? {}" evita error si body es undefined/null.
-    const { customer_id, name, description, min_monthly_rent, max_monthly_rent, active } = req.body ?? {};
+    const { name, description, min_monthly_rent, max_monthly_rent, active } = req.body ?? {};
 
     // Validación mínima de campos obligatorios.
     // Si falta alguno, responde 400 (Bad Request) con mensaje.
-    if (!customer_id || !name || !description) {
+    if (!name || !description) {
       return res.status(400).json({
-        message: 'customer_id, name y description son requeridos',
+        message: 'name y description son requeridos',
       });
     }
 
     // Llama al service con el DTO de creación.
     // El service valida relaciones (customer existe) y persiste el producto.
     const saved = await createProductService({
-      customer_id,
       name,
       description,
       min_monthly_rent,
@@ -96,12 +95,6 @@ export async function createProduct(req: Request, res: Response)
     // Responde 201 (Created) y retorna el objeto creado.
     res.status(201).json(saved);
   } catch (err: any) {
-    // Si el service lanza un error tipificado, se mapea a 400.
-    if (err?.code === 'CUSTOMER_NOT_FOUND') {
-      return res
-        .status(400)
-        .json({ message: 'customer_id no existe en la BD' });
-    }
 
     // Para cualquier otro error: log + 500.
     console.error('Error creando product:', err);
@@ -121,13 +114,12 @@ export async function updateProduct(req: Request<{ id: string }>, res: Response)
     const { id } = req.params;
 
     // Extrae campos del body (parcial). "?? {}" evita errores si body está vacío.
-    const { customer_id, name, description, min_monthly_rent, max_monthly_rent, active } = req.body ?? {};
+    const { name, description, min_monthly_rent, max_monthly_rent, active } = req.body ?? {};
 
     // Llama al service para actualizar.
     // Nota: el controller pasa todos los campos (posiblemente undefined).
     // El service decide qué actualizar (normalmente solo los != undefined).
     const updated = await updateProductService(id, {
-      customer_id,
       name,
       description,
       min_monthly_rent,
@@ -144,12 +136,6 @@ export async function updateProduct(req: Request<{ id: string }>, res: Response)
     // Si existe y se actualizó, responde 200 (implícito) con el objeto actualizado.
     res.json(updated);
   } catch (err: any) {
-    // Caso tipificado: customer_id inválido al reasignar relación.
-    if (err?.code === 'CUSTOMER_NOT_FOUND') {
-      return res
-        .status(400)
-        .json({ message: 'customer_id no existe en la BD' });
-    }
 
     // Caso general: log + 500.
     console.error('Error actualizando product:', err);

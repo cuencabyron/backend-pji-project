@@ -13,10 +13,6 @@ import {
  */
 export class CreateProductDto 
 {
-  @IsUUID('4', { message: 'customer_id debe ser un UUID válido' })
-  @IsNotEmpty({ message: 'customer_id es obligatorio' })
-  customer_id!: string;
-
   @IsString()
   @IsNotEmpty({ message: 'El nombre del servicio es obligatorio' })
   @MaxLength(100, { message: 'El nombre no debe superar 100 caracteres' })

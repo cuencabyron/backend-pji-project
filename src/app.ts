@@ -14,8 +14,6 @@ import sessionsRoutes from '@/modules/session/session.routes';
 import paymentsRoutes from '@/modules/payment/payment.routes';
 // Importa el router de verification, que maneja las rutas /api/verifications
 import verificationsRoutes from '@/modules/verification/verification.routes';
-// Importa el router de servicepricerange, que maneja las rutas /api/servicepricerange
-//import servicepricerangeRoutes from './routes/servicepricerange.routes';
 
 // Crea una instancia de aplicación Express
 const app = express();
