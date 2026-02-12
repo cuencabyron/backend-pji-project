@@ -110,7 +110,7 @@ export async function createPayment(req: Request, res: Response)
     const { customer_id, product_id, amount, currency, method, status, external_ref } = req.body ?? {};
 
     // Validación rápida de campos obligatorios mínimos.
-    if (!customer_id || !product_id || amount == null || !method) 
+    if (!customer_id || !product_id || amount == null || !method || !external_ref) 
     {
       return res.status(400).json({
         message: 'Datos incompletos',
@@ -138,6 +138,12 @@ export async function createPayment(req: Request, res: Response)
         .json({ message: 'customer_id no existe en la BD' });
     }
 
+    if (err?.code === 'PRODUCT_NOT_FOUND') {
+      return res
+      .status(400)
+      .json({ message: 'product_id no existe en la BD' });
+    }
+    
     // Cualquier otro error se maneja como 500 genérico.
     console.error('Error creando payment:', err);
     res.status(500).json({ message: 'Error creando payment' });
@@ -191,6 +197,12 @@ export async function updatePayment(req: Request<{ id: string }>, res: Response)
       return res
         .status(400)
         .json({ message: 'customer_id no existe en la BD' });
+    }
+
+    if (err?.code === 'PRODUCT_NOT_FOUND') {
+      return res
+      .status(400)
+      .json({ message: 'product_id no existe en la BD' });
     }
 
     console.error('Error actualizando payment:', err);

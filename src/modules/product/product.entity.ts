@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
-import { Customer } from '@/modules/customer/customer.entity'
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Payment } from '@/modules/payment/payment.entity'
 
 @Entity({ name: 'product' })
 export class Product
@@ -23,16 +23,8 @@ export class Product
 
   @UpdateDateColumn({ type: 'datetime' }) updated_at!: Date;
 
-  // ==============================================
-  // IDS DERIVADOS DE LAS RELACIONES (SOLO LECTURA)
-  // ==============================================
-  @Column({type: 'char', length: 36}) customer_id!: string;
-
-  // ============================================
-  // RELACIONES (LADO N:1)
-  // ============================================
-
   // ============================================
   // RELACIONES (LADO 1:N)
   // ============================================
+  @OneToMany(() => Payment, p => p.product) payments!: Payment[];
 }
