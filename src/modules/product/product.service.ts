@@ -11,14 +11,8 @@ import { CreateProductDto } from '@/modules/product/dtos/create-product.dto';
 import { UpdateProductDto } from '@/modules/product/dtos/update-product.dto';
 
 // Lista todos los productos incluyendo la relación con customer.
-export async function findAllProducts() 
-{
-  // Obtiene el repositorio TypeORM de Product para hacer operaciones CRUD.
-  const repo = AppDataSource.getRepository(Product);
-
-  // Retorna todos los productos (repo.find) incluyendo la relación customer.
-  // relations: { customer: true } fuerza a TypeORM a hacer el join/carga de la relación.
-  return repo.find;
+export async function findAllProducts() {
+  return AppDataSource.getRepository(Product).find();
 }
 
 // Busca un producto por su ID, incluyendo su customer relacionado.
