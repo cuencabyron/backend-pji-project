@@ -21,6 +21,11 @@ export class UpdateSessionDto
 
   @IsOptional()
   @IsString()
+  @MaxLength(45)
+  ip_address?: string;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(255)
   user_agent?: string;
 

@@ -25,6 +25,25 @@ import {
   deleteSessionService,
 } from '@/modules/session/session.service';
 
+function getClientIp(req: Request): string 
+{
+  const header = req.headers['x-forwarded-for'];
+
+  let ip: string | undefined;
+
+  if (typeof header === 'string') {
+    ip = header.split(',')[0];
+  } else if (Array.isArray(header)) {
+    ip = header[0];
+  }
+
+  if (!ip) {
+    ip = req.socket?.remoteAddress ?? req.ip ?? '';
+  }
+
+  return ip.trim();
+}
+
 // ============================================================================
 // GET /api/sessions
 // ============================================================================
@@ -96,9 +115,12 @@ export async function createSession(req: Request, res: Response)
   try {
     // Desestructuramos los campos esperados del body.
     const { customer_id, user_agent, status } = req.body ?? {};
+    
+    // Obten la IP desde la solicitud HTTP
+    const ip_address = getClientIp(req);
 
     // Validación rápida de campos obligatorios (a nivel controlador).
-    if (!customer_id || !user_agent) {
+    if (!customer_id || !ip_address || !user_agent) {
       return res.status(400).json({
         // Nota: el mensaje menciona ip_address por diseño del dominio,
         // aunque en este handler solo usamos customer_id y user_agent.
@@ -109,6 +131,7 @@ export async function createSession(req: Request, res: Response)
     // Delegamos la creación de la sesión en la capa de servicios.
     const saved = await createSessionService({
       customer_id,
+      ip_address,
       user_agent,
       status,
     });
@@ -150,9 +173,13 @@ export async function updateSession(req: Request<{ id: string }>, res: Response)
     // Desestructuramos los campos esperados del body.
     const { customer_id, user_agent, status } = req.body ?? {};
 
+    // Obten la IP desde la solicitud HTTP
+    const ip_address = getClientIp(req);
+
     // Delegamos la actualización en la capa de servicios.
     const updated = await updateSessionService(id, {
       customer_id,
+      ip_address,
       user_agent,
       status,
     });

@@ -89,6 +89,7 @@ export async function createSessionService(dto: CreateSessionDto, ): Promise<Ses
   // Creamos la entidad Session en memoria.
   const entity = sessionRepo.create({
     customer,                  // relación ManyToOne
+    ip_address: dto.ip_address,
     user_agent: dto.user_agent,
     status: dto.status ?? 'active', // por defecto 'active'
   });
@@ -140,6 +141,7 @@ export async function updateSessionService(id: string, dto: UpdateSessionDto, ):
   }
 
   // Actualizamos solo los campos definidos.
+  if (dto.ip_address !== undefined) existing.ip_address = dto.ip_address;
   if (dto.user_agent !== undefined) existing.user_agent = dto.user_agent;
   if (dto.status !== undefined)      existing.status = dto.status;
 

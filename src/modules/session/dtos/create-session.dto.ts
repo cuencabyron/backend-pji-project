@@ -21,6 +21,11 @@ export class CreateSessionDto
   customer_id!: string;
 
   @IsString()
+  @IsNotEmpty({ message: 'ip_address es obligatorio' })
+  @MaxLength(45, { message: 'ip_address no debe superar 45 caracteres' })
+  ip_address!: string;
+
+  @IsString()
   @IsNotEmpty({ message: 'user_agent es obligatorio' })
   @MaxLength(255, { message: 'user_agent no debe superar 255 caracteres' })
   user_agent!: string;

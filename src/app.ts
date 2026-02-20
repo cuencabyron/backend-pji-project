@@ -18,6 +18,8 @@ import verificationsRoutes from '@/modules/verification/verification.routes';
 // Crea una instancia de aplicación Express
 const app = express();
 
+app.set('trust proxy', true);
+
 // Aplica Helmet a toda la app para mejorar la seguridad con cabeceras HTTP
 app.use(helmet());
 

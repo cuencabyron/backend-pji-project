@@ -11,6 +11,9 @@ export class Session
   // CAMPOS PROPIOS
   // ============================================
   @PrimaryGeneratedColumn('uuid') session_id!: string;
+
+  @Column({ type: 'varchar', length: 45 }) ip_address!: string;
+
   @Column({ type: 'varchar', length: 255 }) user_agent!: string;
 
   @Column({ length: 20, default: 'active' }) status!: string;
