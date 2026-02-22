@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsNotEmpty,
   MaxLength,
+  IsNumber,
 } from 'class-validator';
 
 /**
@@ -23,12 +24,12 @@ export class UpdateProductDto
   @MaxLength(255)
   description?: string;
 
-  @IsString()
+  @IsNumber()
   @IsNotEmpty()
   @MaxLength(10)
   min_monthly_rent!: string;
 
-  @IsString()
+  @IsNumber()
   @IsNotEmpty()
   @MaxLength(10)
   max_monthly_rent!: string;

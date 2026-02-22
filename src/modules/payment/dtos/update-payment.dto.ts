@@ -1,6 +1,5 @@
 import {
   IsString,
-  IsUUID,
   IsOptional,
   MaxLength,
   IsIn,
@@ -15,24 +14,6 @@ export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
 export class UpdatePaymentDto 
 {
   @IsOptional()
-  @IsUUID('4')
-  customer_id?: string;
-
-  @IsOptional()
-  @IsUUID('4')
-  product_id?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(10)
-  amount?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(10)
-  currency?: string;
-
-  @IsOptional()
   @IsString()
   @MaxLength(50)
   method?: string;
@@ -40,9 +21,4 @@ export class UpdatePaymentDto
   @IsOptional()
   @IsIn(['pending', 'paid', 'failed', 'refunded'])
   status?: PaymentStatus;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  external_ref?: string;
 }

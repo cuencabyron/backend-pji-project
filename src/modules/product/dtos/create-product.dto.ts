@@ -4,6 +4,7 @@ import {
   IsOptional,
   IsNotEmpty,
   MaxLength,
+  IsNumber,
 } from 'class-validator';
 
 /**
@@ -22,12 +23,12 @@ export class CreateProductDto
   @MaxLength(255, { message: 'La descripción no debe superar 255 caracteres' })
   description!: string;
 
-  @IsString()
+  @IsNumber()
   @IsNotEmpty({ message: 'El mínimo mensual es obligatorio' })
   @MaxLength(10, { message: 'min_monthly_rent no debe superar 10 caracteres' })
   min_monthly_rent!: string;
 
-  @IsString()
+  @IsNumber()
   @IsNotEmpty({ message: 'El máximo mensual es obligatorio' })
   @MaxLength(10, { message: 'max_monthly_rent no debe superar 10 caracteres' })
   max_monthly_rent!: string;

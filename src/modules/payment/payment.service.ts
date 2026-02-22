@@ -41,9 +41,7 @@ export async function findPaymentById(id: string)
 export async function createPaymentService(dto: CreatePaymentDto) 
 {
   const paymentRepo = AppDataSource.getRepository(Payment);
-
   const customerRepo = AppDataSource.getRepository(Customer);
-
   const productRepo = AppDataSource.getRepository(Product);
 
   const customer = await customerRepo.findOneBy({
@@ -67,14 +65,19 @@ export async function createPaymentService(dto: CreatePaymentDto)
     throw error;
   }
 
+  const amount =((Number(product.min_monthly_rent) + Number(product.max_monthly_rent)) / 2).toString();
+  const currency = 'MXN';
+  const status = 'pending';
+  const external_ref = `PAY-${Date.now()}`;
+
   const entity = paymentRepo.create({
     customer,
     product,
-    amount: dto.amount,
-    currency: dto.currency,
+    amount,
+    currency,
     method: dto.method,
-    status: dto.status ?? 'pending', 
-    external_ref: dto.external_ref,
+    status,
+    external_ref,
   });
 
   return paymentRepo.save(entity);
@@ -96,40 +99,8 @@ export async function updatePaymentService(id: string, dto: UpdatePaymentDto)
 
   if (!existing) return null;
 
-  if (dto.customer_id) 
-  {
-    const newCustomer = await customerRepo.findOneBy({
-      customer_id: dto.customer_id,
-    });
-
-    if (!newCustomer) {
-      const error: any = new Error('Customer no encontrado');
-      error.code = 'CUSTOMER_NOT_FOUND';
-      throw error;
-    }
-
-    existing.customer = newCustomer;
-  }
-
-  if (dto.product_id) 
-  {
-    const newProduct = await productRepo.findOneBy({
-      product_id: dto.product_id,
-    });
-
-    if (!newProduct) {
-      const error: any = new Error('Product no encontrado');
-      error.code = 'PRODUCT_NOT_FOUND';
-      throw error;
-    }
-    existing.product = newProduct;
-  }
-
-  if (dto.amount !== undefined) existing.amount = dto.amount;
-  if (dto.currency !== undefined) existing.currency = dto.currency;
   if (dto.method !== undefined) existing.method = dto.method;
   if (dto.status !== undefined) existing.status = dto.status;
-  if (dto.external_ref !== undefined) existing.external_ref = dto.external_ref;
 
   return paymentRepo.save(existing);
 }

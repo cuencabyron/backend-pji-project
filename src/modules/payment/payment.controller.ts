@@ -20,6 +20,8 @@
 // Tipos de Express para tipar las funciones de controlador.
 import { Request, Response } from 'express';
 
+import { findProductById } from '@/modules/product/product.service';
+
 // Funciones de la capa de servicio que encapsulan la lógica de acceso a datos
 // y reglas básicas de negocio para Payment.
 import {
@@ -107,29 +109,38 @@ export async function createPayment(req: Request, res: Response)
 {
   try {
     // Extrae los campos del body. `?? {}` evita errores si el body viene undefined.
-    const { customer_id, product_id, amount, currency, method, status, external_ref } = req.body ?? {};
+    const { customer_id, product_id, method } = req.body ?? {};
 
     // Validación rápida de campos obligatorios mínimos.
-    if (!customer_id || !product_id || amount == null || !method || !external_ref) 
+    if (!customer_id || !product_id || !method ) 
     {
       return res.status(400).json({
         message: 'Datos incompletos',
       });
     }
 
-    // Delegamos la lógica de creación a la capa de servicios.
+    // Buscar producto en la BD
+    const product = await findProductById(product_id);
+
+    if (!product) {
+      return res.status(400).json({ message: 'product_id no existe en la BD' });
+    }
+
+    const amount = (product.min_monthly_rent + product.max_monthly_rent) / 2;
+    const currency = 'MXN';
+    const status = 'paid';
+    const external_ref = `PAY-${Date.now()}`;
+    const paid_at = new Date();
+
     const saved = await createPaymentService({
       customer_id,
       product_id,
-      amount,
-      currency,
       method,
-      status,
-      external_ref,
     });
 
     // Devolvemos el pago creado con código 201.
     res.status(201).json(saved);
+
   } catch (err: any) {
     // Regla de negocio: el customer_id no existe en la BD
     if (err?.code === 'CUSTOMER_NOT_FOUND') {
@@ -171,17 +182,11 @@ export async function updatePayment(req: Request<{ id: string }>, res: Response)
     const { id } = req.params;
 
     // Datos que se desean actualizar.
-    const { customer_id, product_id, amount, currency, method, status, external_ref } = req.body ?? {};
+    const { status } = req.body ?? {};
 
     // Llamada a la capa de servicios para aplicar la actualización.
     const updated = await updatePaymentService(id, {
-      customer_id,
-      product_id,
-      amount,
-      currency,
-      method,
       status,
-      external_ref,
     });
 
     // Si no se encontró el payment, responder 404.
