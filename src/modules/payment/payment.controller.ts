@@ -126,12 +126,6 @@ export async function createPayment(req: Request, res: Response)
       return res.status(400).json({ message: 'product_id no existe en la BD' });
     }
 
-    const amount = (product.min_monthly_rent + product.max_monthly_rent) / 2;
-    const currency = 'MXN';
-    const status = 'paid';
-    const external_ref = `PAY-${Date.now()}`;
-    const paid_at = new Date();
-
     const saved = await createPaymentService({
       customer_id,
       product_id,

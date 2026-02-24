@@ -65,7 +65,7 @@ export async function createPaymentService(dto: CreatePaymentDto)
     throw error;
   }
 
-  const amount =((Number(product.min_monthly_rent) + Number(product.max_monthly_rent)) / 2).toString();
+  const amount = product.min_monthly_rent.toString();
   const currency = 'MXN';
   const status = 'pending';
   const external_ref = `PAY-${Date.now()}`;

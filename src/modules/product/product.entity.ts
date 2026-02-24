@@ -13,9 +13,9 @@ export class Product
 
   @Column({ type: 'varchar', length: 255 }) description!: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 3 }) min_monthly_rent!: number;
+  @Column({ type: 'decimal', precision: 10, scale: 3 }) min_monthly_rent!: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 3 }) max_monthly_rent!: number;
+  @Column({ type: 'decimal', precision: 10, scale: 3 }) max_monthly_rent!: string;
 
   @Column({ type: 'boolean', default: true }) active!: boolean;
 
