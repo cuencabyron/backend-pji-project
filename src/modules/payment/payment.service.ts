@@ -100,7 +100,15 @@ export async function updatePaymentService(id: string, dto: UpdatePaymentDto)
   if (!existing) return null;
 
   if (dto.method !== undefined) existing.method = dto.method;
-  if (dto.status !== undefined) existing.status = dto.status;
+  if (dto.status !== undefined) 
+  {
+    const wasPaid = existing.status === 'paid';
+    existing.status = dto.status;
+
+    if (!wasPaid && dto.status === 'paid') {
+      existing.paid_at = new Date();
+    }
+  }
 
   return paymentRepo.save(existing);
 }
