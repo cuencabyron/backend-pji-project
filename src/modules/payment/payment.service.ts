@@ -68,7 +68,7 @@ export async function createPaymentService(dto: CreatePaymentDto)
   const amount = product.min_monthly_rent.toString();
   const currency = 'MXN';
   const status = 'pending';
-  const external_ref = `PAY-${Date.now()}`;
+  const external_ref = `PJI-${Date.now()}`;
 
   const entity = paymentRepo.create({
     customer,
