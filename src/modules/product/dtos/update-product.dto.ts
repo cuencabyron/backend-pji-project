@@ -1,16 +1,13 @@
 import {
   IsString,
-  IsUUID,
   IsBoolean,
   IsOptional,
-  IsNotEmpty,
   MaxLength,
-  IsNumber,
+  IsNumberString,
 } from 'class-validator';
 
 /**
  * DTO para actualizar parcialmente un Product.
- * Igual que CreateProductDto pero todos los campos son opcionales.
  */
 export class UpdateProductDto 
 {
@@ -24,15 +21,13 @@ export class UpdateProductDto
   @MaxLength(255)
   description?: string;
 
-  @IsNumber()
-  @IsNotEmpty()
-  @MaxLength(10)
-  min_monthly_rent!: string;
+  @IsOptional()
+  @IsNumberString()
+  min_monthly_rent?: string;
 
-  @IsNumber()
-  @IsNotEmpty()
-  @MaxLength(10)
-  max_monthly_rent!: string;
+  @IsOptional()
+  @IsNumberString()
+  max_monthly_rent?: string;
 
   @IsOptional()
   @IsBoolean()

@@ -4,17 +4,17 @@ import {
   IsOptional,
   IsNotEmpty,
   MaxLength,
-  IsNumber,
+  IsNumberString,
 } from 'class-validator';
 
 /**
- * DTO para crear un nuevo Service.
- * Representa la forma del body en POST /api/services.
+ * DTO para crear un nuevo Product.
+ * Representa el body de POST /api/products
  */
 export class CreateProductDto 
 {
   @IsString()
-  @IsNotEmpty({ message: 'El nombre del servicio es obligatorio' })
+  @IsNotEmpty({ message: 'El nombre es obligatorio' })
   @MaxLength(100, { message: 'El nombre no debe superar 100 caracteres' })
   name!: string;
 
@@ -23,17 +23,15 @@ export class CreateProductDto
   @MaxLength(255, { message: 'La descripción no debe superar 255 caracteres' })
   description!: string;
 
-  @IsNumber()
-  @IsNotEmpty({ message: 'El mínimo mensual es obligatorio' })
-  @MaxLength(10, { message: 'min_monthly_rent no debe superar 10 caracteres' })
+  @IsNumberString()
+  @IsNotEmpty({ message: 'min_monthly_rent es obligatorio' })
   min_monthly_rent!: string;
 
-  @IsNumber()
-  @IsNotEmpty({ message: 'El máximo mensual es obligatorio' })
-  @MaxLength(10, { message: 'max_monthly_rent no debe superar 10 caracteres' })
+  @IsNumberString()
+  @IsNotEmpty({ message: 'max_monthly_rent es obligatorio' })
   max_monthly_rent!: string;
 
   @IsOptional()
-  @IsBoolean({ message: 'active debe ser un booleano' })
+  @IsBoolean({ message: 'active debe ser booleano' })
   active?: boolean;
 }
